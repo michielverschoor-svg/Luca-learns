@@ -249,7 +249,12 @@ export const TreatShape: React.FC<{scale?: number}> = ({scale = 1}) => (
   </g>
 );
 
-export const FaceExtras: React.FC<{face: FaceConfig; frame: number; fps: number}> = ({face, frame, fps}) => {
+export const FaceExtras: React.FC<{face: FaceConfig; frame: number; fps: number; upright?: number}> = ({
+  face,
+  frame,
+  fps,
+  upright = 0,
+}) => {
   const t = frame / fps;
   return (
     <g>
@@ -292,7 +297,7 @@ export const FaceExtras: React.FC<{face: FaceConfig; frame: number; fps: number}
             return (
               <g
                 key={i}
-                transform={`translate(${96 + p * 50} ${-80 - p * 90}) rotate(10) scale(${s})`}
+                transform={`rotate(${upright}) translate(${96 + p * 50} ${-80 - p * 90}) rotate(10) scale(${s})`}
                 opacity={Math.sin(p * Math.PI)}
               >
                 <Sketch d="M-10 -10L10 -10L-10 10L10 10" strokeWidth={3} seed={`z${i}`} />

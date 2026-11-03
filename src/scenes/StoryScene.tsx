@@ -154,6 +154,13 @@ const computeFrame = (
     } else {
       pose.blink = blinkAt(Math.round(frames * 0.6));
     }
+  } else if (!['sleepy', 'treat-hypnotized'].includes(pose.expression)) {
+    // Natural blinks every few seconds, slightly irregular.
+    const period = Math.round(3.3 * fps);
+    const k = Math.floor(f / period);
+    const start = k * period + Math.round(random(`blink${scene.id}${k}`) * fps);
+    const d = f - start;
+    pose.blink = d < 0 || d > 6 ? 0 : d < 2 ? d / 2 : 1 - (d - 2) / 4;
   }
 
   // Tail wag.
@@ -448,6 +455,11 @@ const computeFrame = (
   const handoff = tl.actions.find((a) => a.kind === 'handoff');
   if (handoff && f < handoff.start) {
     hand = {x: side ? lx - 330 : lx - 170, y: ly - 500 + 5 * Math.sin(f / 8), treat: true};
+  }
+  // The hand slides in from above at the start of the scene instead of popping in.
+  if (hand) {
+    const e = Easing.out(Easing.back(1.4))(clamp(f / (0.45 * fps)));
+    hand = {...hand, y: -260 + (hand.y + 260) * e};
   }
 
   // In profile he rears up on his hind legs instead of flying, so keep the hop small.

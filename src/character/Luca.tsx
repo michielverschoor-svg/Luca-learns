@@ -36,7 +36,8 @@ export const Head: React.FC<{pose: LucaPose}> = ({pose}) => {
       </g>
       <Eyes face={face} pose={pose} />
       <NoseMouth face={face} pose={pose} />
-      <FaceExtras face={face} frame={frame} fps={fps} />
+      {/* keep the Zzz upright even when he tips over */}
+      <FaceExtras face={face} frame={frame} fps={fps} upright={9 - tilt - pose.lean} />
     </g>
   );
 };
