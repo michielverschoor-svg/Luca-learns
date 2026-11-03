@@ -1,6 +1,7 @@
 import React from 'react';
 import {Composition, getStaticFiles} from 'remotion';
 import {CharacterSheet} from './CharacterSheet';
+import {SideViewSheet} from './SideViewSheet';
 import {Episode, episodeFrames} from './Episode';
 import type {Episode as EpisodeData, EpisodeProps} from './types';
 import ep01 from '../episodes/ep01-sit.json';
@@ -60,5 +61,6 @@ export const RemotionRoot: React.FC = () => (
       width={1920}
       height={1080}
     />
+    <Composition id="SideView" component={SideViewSheet} durationInFrames={150} fps={30} width={1920} height={1080} />
   </>
 );
