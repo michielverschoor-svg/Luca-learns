@@ -15,7 +15,8 @@ export type ActionKind =
   | 'handoff'
   | 'chew'
   | 'cheeksPuff'
-  | 'tipOver';
+  | 'tipOver'
+  | 'zoomies';
 
 export type Cue =
   | {kind: 'blink'; everySec: number | null}
@@ -23,6 +24,7 @@ export type Cue =
   | {kind: 'headTilt'; size: 'small' | 'normal' | 'big'; slow: boolean; eachCut: boolean}
   | {kind: 'headTipBack'}
   | {kind: 'pushIn'; amount: number}
+  | {kind: 'punchIn'; at: number | null}
   | {kind: 'scrabble'}
   | {kind: 'trackTreat'}
   | {kind: 'tongueOut'}
@@ -43,6 +45,11 @@ export const parseCue = (raw: string): Cue | null => {
     const location = LOCATIONS.find((l) => action.includes(l)) ?? 'room';
     return {kind: 'cut', location};
   }
+  if (/punch/.test(all)) {
+    const at = /(?:at|@)\s*(\d+(?:\.\d+)?)\s*s/.exec(all);
+    return {kind: 'punchIn', at: at ? parseFloat(at[1]) : null};
+  }
+  if (/zoomies|run around|race around/.test(all)) return {kind: 'zoomies'};
   if (target === 'camera' || /push-?in/.test(all)) {
     const pct = /(\d+(?:\.\d+)?)\s*%/.exec(action);
     return {kind: 'pushIn', amount: pct ? parseFloat(pct[1]) / 100 : 0.15};
@@ -103,6 +110,7 @@ const ACTION_KINDS: ActionKind[] = [
   'chew',
   'cheeksPuff',
   'tipOver',
+  'zoomies',
 ];
 
 /** Relative share of the scene each action takes when several are chained. */
@@ -117,6 +125,7 @@ const ACTION_WEIGHT: Record<ActionKind, number> = {
   chew: 1.6,
   cheeksPuff: 1,
   tipOver: 1.5,
+  zoomies: 2.4,
 };
 
 export type TimedAction = {

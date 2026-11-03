@@ -4,6 +4,7 @@ import {
   Easing,
   Html5Audio,
   interpolate,
+  random,
   Sequence,
   spring,
   staticFile,
@@ -82,6 +83,27 @@ type FrameState = {
   zoomBump: number;
   /** Luca's head on the stage, for placing thought bubbles. */
   head: {x: number; y: number; r: number};
+  /** Which way the side-view Luca faces. */
+  facing: 'left' | 'right';
+  /** Dizzy stars after a crash, 0..1. */
+  stars: number;
+};
+
+/** Where the zoomies end: he crashes into his platypus here (stage x). */
+const ZOOM_CRASH_X = 820;
+
+/** Frames where something lands or crashes: the camera shakes there. */
+const impactFrames = (tl: SceneTimeline): number[] => {
+  const out: number[] = [];
+  for (const a of tl.actions) {
+    const at = (p: number) => Math.round(a.start + (a.end - a.start) * p);
+    if (a.kind === 'jump') out.push(at(a.chainedInto === 'slide' ? 0.45 : 0.85));
+    if (a.kind === 'slide' && a.slideDirection === 'down') out.push(at(0.95));
+    if (a.kind === 'sitDrop') out.push(at(0.3));
+    if (a.kind === 'zoomies') out.push(at(0.7));
+    if (a.kind === 'tipOver') out.push(at(0.8));
+  }
+  return out;
 };
 
 const computeFrame = (
@@ -93,6 +115,12 @@ const computeFrame = (
   setup: Setup,
 ): FrameState => {
   const pose = restPose(scene.expression);
+  // Expression beats inside the scene.
+  for (const b of [...(scene.beats ?? [])].sort((x, y) => x.at - y.at)) {
+    if (f >= b.at * fps) pose.expression = b.expression;
+  }
+  let facing: 'left' | 'right' = 'left';
+  let stars = 0;
   const segIndex = Math.max(
     0,
     tl.segments.findIndex((s) => f >= s.start && f < s.end),
@@ -100,7 +128,7 @@ const computeFrame = (
   const seg = tl.segments[segIndex] ?? tl.segments[0];
   const location = seg.location;
   const side = scene.view === 'side';
-  const lx = setup.human ? 1120 : SPOT[location] + (side ? 100 : 0);
+  let lx = setup.human ? 1120 : SPOT[location] + (side ? 100 : 0);
   const ly = GROUND_Y;
   // How far he travels toward the human's legs when jumping at them (sketch units).
   // The side view is mirrored (facing left), so its offset is positive.
@@ -174,7 +202,8 @@ const computeFrame = (
     const py = -13;
     const rx = px + (hx - px) * Math.cos(a) - (hy - py) * Math.sin(a);
     const ry = py + (hx - px) * Math.sin(a) + (hy - py) * Math.cos(a);
-    return [lx - (rx + pose.bodyX) * S2, ly + (ry + pose.bodyY) * S2];
+    const dir = facing === 'left' ? -1 : 1;
+    return [lx + dir * (rx + pose.bodyX) * S2, ly + (ry + pose.bodyY) * S2];
   };
   const headX = () => (side ? sideHeadStage()[0] : lx + pose.bodyX * S);
   const headY = () =>
@@ -338,6 +367,48 @@ const computeFrame = (
         if (side) pose.look = {x: 0.6, y: 0.3};
         break;
       }
+      case 'zoomies': {
+        // Race left off screen, come back, skid, crash into the platypus, flop down dizzy.
+        const crash = Math.round(a.start + (a.end - a.start) * 0.7);
+        if (f >= crash) stars = clamp(1 - (f - crash) / (2.2 * fps));
+        pose.runPhase = f * 0.85;
+        if (done) {
+          lx = ZOOM_CRASH_X;
+          facing = 'right';
+          break;
+        }
+        pose.stand = 1;
+        pose.tailWag = 22 * Math.sin(f * 0.9) - 8;
+        if (p < 0.28) {
+          lx = 2150 + (-280 - 2150) * (p / 0.28);
+          facing = 'left';
+          pose.run = 1;
+        } else if (p < 0.34) {
+          lx = -280;
+          facing = 'right';
+          pose.run = 1;
+        } else if (p < 0.62) {
+          lx = -280 + (ZOOM_CRASH_X - 60 + 280) * ((p - 0.34) / 0.28);
+          facing = 'right';
+          pose.run = 1;
+        } else if (p < 0.7) {
+          const q = (p - 0.62) / 0.08;
+          lx = ZOOM_CRASH_X - 60 + 60 * easeOut(q);
+          facing = 'right';
+          pose.run = 1 - q;
+          pose.lean = -14 * q;
+          dust = q;
+        } else {
+          const q = (p - 0.7) / 0.3;
+          lx = ZOOM_CRASH_X;
+          facing = 'right';
+          pose.lean = -14 * (1 - clamp(q / 0.15));
+          pose.squash = 1 - 0.2 * Math.exp(-q * 10);
+          pose.stand = 1 - easeOut(clamp(q / 0.3));
+          pose.earBounce += 14 * Math.exp(-q * 6);
+        }
+        break;
+      }
       case 'tipOver': {
         const e = done ? 1 : easeIn(clamp(p / 0.8));
         pose.lean = 72 * e;
@@ -418,6 +489,8 @@ const computeFrame = (
     crumbs,
     zoomBump,
     head: {x: headX(), y: headY(), r: side ? 80 * S2 : 98 * S},
+    facing,
+    stars,
   };
 };
 
@@ -460,8 +533,38 @@ const Effects: React.FC<{st: FrameState; frame: number}> = ({st, frame}) => {
   const {pose, lx} = st;
   const bx = lx + pose.bodyX * S;
   const by = GROUND_Y + pose.bodyY * S;
+  const back = st.facing === 'left' ? 1 : -1;
+  const star = (x: number, y: number, r: number) =>
+    `M${x} ${y - r}L${x + r * 0.3} ${y - r * 0.3}L${x + r} ${y}L${x + r * 0.3} ${y + r * 0.3}L${x} ${y + r}L${x - r * 0.3} ${y + r * 0.3}L${x - r} ${y}L${x - r * 0.3} ${y - r * 0.3}Z`;
   return (
     <g>
+      {pose.run > 0.3 ? (
+        <g opacity={pose.run}>
+          {[-190, -130, -70].map((dy, i) => {
+            const x0 = st.lx + back * (170 + i * 30);
+            const len = 160 + 60 * Math.sin(frame * 0.7 + i);
+            return (
+              <Sketch
+                key={i}
+                d={`M${x0} ${GROUND_Y + dy}L${x0 + back * len} ${GROUND_Y + dy + 4}`}
+                strokeWidth={3}
+                stroke="#5CC8C0"
+                seed={`speed${i}-${Math.floor(frame / 2)}`}
+              />
+            );
+          })}
+        </g>
+      ) : null}
+      {st.stars > 0.02 ? (
+        <g opacity={Math.min(1, st.stars * 2)}>
+          {[0, 1, 2].map((i) => {
+            const a = frame * 0.18 + (i * Math.PI * 2) / 3;
+            const x = st.head.x + Math.cos(a) * 120;
+            const y = st.head.y - 110 + Math.sin(a) * 34;
+            return <Sketch key={i} d={star(x, y, 22)} fill="#FFD23F" fillOpacity={1} strokeWidth={2.4} seed={`star${i}`} />;
+          })}
+        </g>
+      ) : null}
       {st.whoosh > 0.02 ? (
         <g opacity={st.whoosh}>
           <Sketch
@@ -529,6 +632,12 @@ const sfxTimes = (name: string, tl: SceneTimeline, frames: number, fps: number):
   const act = (kind: TimedAction['kind']) => tl.actions.find((a) => a.kind === kind);
   const at = (a: TimedAction | undefined, p: number) => (a ? [Math.round(a.start + (a.end - a.start) * p)] : null);
   if (/room|ambien|tone/.test(name)) return 'loop';
+  const zoom = act('zoomies');
+  if (zoom) {
+    if (/whoosh/.test(name)) return [at(zoom, 0.04)![0], at(zoom, 0.36)![0]];
+    if (/skid/.test(name)) return at(zoom, 0.62)!;
+    if (/thump|squeak/.test(name)) return at(zoom, 0.7)!;
+  }
   const tip = act('tipOver');
   if (/slide whistle up/.test(name)) return [Math.round(frames * 0.12)];
   if (/slide whistle/.test(name)) return at(act('slide'), 0) ?? [Math.round(frames * 0.2)];
@@ -626,9 +735,19 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
   }, [scene, durationInFrames]);
 
   const st = computeFrame(frame, durationInFrames, fps, scene, tl, setup);
-  const push = tl.get('pushIn');
   const side = scene.view === 'side';
-  const cam = camera(
+
+  // Follow-through: ears lag behind vertical motion, the body stretches when moving fast.
+  if (frame > 0) {
+    const prev = computeFrame(frame - 1, durationInFrames, fps, scene, tl, setup);
+    const vy = st.pose.bodyY - prev.pose.bodyY;
+    st.pose.earBounce += clamp(vy * 1.4, -16, 22);
+    st.pose.earStream += clamp(vy * 1.2, -15, 20) + 30 * st.pose.run;
+    st.pose.squash *= 1 + Math.min(0.1, Math.abs(vy) * 0.012);
+  }
+
+  const push = tl.get('pushIn');
+  const base = camera(
     setup.framing,
     side ? st.lx - 130 : st.lx,
     setup.human,
@@ -636,19 +755,55 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
     clamp(frame / durationInFrames),
     st.zoomBump,
   );
+
+  // Luca's thoughts: one bubble for the scene, one per location when the scene cuts,
+  // or exactly timed bubbles ({text, at, until}).
+  const raw = scene.voiceover == null ? [] : Array.isArray(scene.voiceover) ? scene.voiceover : [scene.voiceover];
+  const timed = raw.some((l) => typeof l !== 'string');
+  const thoughts = timed
+    ? raw.map((l, i) => {
+        const line = typeof l === 'string' ? {text: l, at: (durationInFrames / fps) * (i / raw.length)} : l;
+        const next = raw[i + 1];
+        const nextAt = next === undefined ? null : typeof next === 'string' ? null : next.at;
+        const until = line.until ?? (nextAt ?? durationInFrames / fps + 1);
+        return {text: line.text, from: Math.round(line.at * fps), to: Math.min(durationInFrames - 2, Math.round(until * fps) - 2)};
+      })
+    : raw.length <= 1
+      ? raw.map((text) => ({text: text as string, from: Math.round(0.2 * fps), to: durationInFrames - 2}))
+      : raw.map((text, i) => {
+          const seg = tl.segments.length === raw.length ? tl.segments[i] : null;
+          const start = seg ? seg.start : Math.round((durationInFrames * i) / raw.length);
+          const end = seg ? seg.end : Math.round((durationInFrames * (i + 1)) / raw.length);
+          return {text: text as string, from: start + 4, to: end - 2};
+        });
+
+  // Comedy camera: a quick punch-in zoom on the punchline, and a shake on every impact.
+  const punch = tl.get('punchIn');
+  let z = base.z;
+  let fx = base.fx;
+  let fy = base.fy;
+  if (punch) {
+    const at = punch.at != null ? Math.round(punch.at * fps) : (thoughts[thoughts.length - 1]?.from ?? Math.round(durationInFrames * 0.6));
+    const e = easeOut(clamp((frame - at) / 5));
+    z *= 1 + 0.3 * e;
+    fx += (st.head.x - fx) * 0.7 * e;
+    fy += (st.head.y - fy) * 0.7 * e;
+    fx = clamp(fx, 960 / z, 1920 - 960 / z);
+    fy = clamp(fy, 540 / z, 1080 - 540 / z);
+  }
+  let sx = 0;
+  let sy = 0;
+  for (const hit of impactFrames(tl)) {
+    const d = frame - hit;
+    if (d >= 0 && d < 10) {
+      const amp = 16 * Math.exp(-d / 3);
+      sx += (random(`shx${hit}-${frame}`) - 0.5) * 2 * amp;
+      sy += (random(`shy${hit}-${frame}`) - 0.5) * 2 * amp;
+    }
+  }
+  const cam = {z, fx, fy, transform: `translate(${960 + sx} ${540 + sy}) scale(${z}) translate(${-fx} ${-fy})`};
   const fadeIn = interpolate(frame, [0, 4], [0, 1], {extrapolateRight: 'clamp'});
 
-  // Luca's thoughts: one bubble for the scene, or one per location when the scene cuts.
-  const lines = scene.voiceover == null ? [] : Array.isArray(scene.voiceover) ? scene.voiceover : [scene.voiceover];
-  const thoughts =
-    lines.length <= 1
-      ? lines.map((text) => ({text, from: Math.round(0.2 * fps), to: durationInFrames - 2}))
-      : lines.map((text, i) => {
-          const seg = tl.segments.length === lines.length ? tl.segments[i] : null;
-          const start = seg ? seg.start : Math.round((durationInFrames * i) / lines.length);
-          const end = seg ? seg.end : Math.round((durationInFrames * (i + 1)) / lines.length);
-          return {text, from: start + 4, to: end - 2};
-        });
   const colorSeed = [...scene.id].reduce((sum, c) => sum + c.charCodeAt(0), 0);
 
   return (
@@ -660,14 +815,14 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
             <Background location={st.location} />
             {setup.platypus ? (
               <g
-                transform={`translate(${tl.has('tipOver') ? st.lx + 430 : st.lx > 1200 ? 520 : 1560} ${GROUND_Y + 30})`}
+                transform={`translate(${tl.has('zoomies') ? ZOOM_CRASH_X + 240 : tl.has('tipOver') ? st.lx + 430 : st.lx > 1200 ? 520 : 1560} ${GROUND_Y + 30})`}
               >
                 <Platypus scale={1.2} rotate={-4} />
               </g>
             ) : null}
             {setup.human ? <HumanLegs x={HUMAN_X} ground={GROUND_Y + 10} /> : null}
             {side ? (
-              <LucaSide pose={st.pose} x={st.lx} y={GROUND_Y} scale={S2} flip />
+              <LucaSide pose={st.pose} x={st.lx} y={GROUND_Y} scale={S2} flip={st.facing === 'left'} />
             ) : (
               <Luca pose={st.pose} x={st.lx} y={GROUND_Y} scale={S} />
             )}

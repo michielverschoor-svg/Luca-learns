@@ -21,6 +21,8 @@ export type Location = 'room' | 'kitchen' | 'bathroom' | 'fridge';
 
 export type Framing = 'wide' | 'medium' | 'close' | 'low';
 
+export type ThoughtLine = {text: string; at: number; until?: number};
+
 export type StoryScene = {
   id: string;
   type?: 'story';
@@ -28,8 +30,13 @@ export type StoryScene = {
   shot: string;
   expression: Expression;
   animation: string[];
-  /** Luca's thought. With cuts, a list gives each location its own bubble. */
-  voiceover: string | string[] | null;
+  /**
+   * Luca's thought. With cuts, a list gives each location its own bubble.
+   * A list item can also be {text, at, until} (seconds) to time a bubble exactly.
+   */
+  voiceover: string | (string | ThoughtLine)[] | null;
+  /** Expression changes inside the scene: [{"at": 2.5, "expression": "surprised"}]. */
+  beats?: {at: number; expression: Expression}[];
   sfx?: string[];
   /** Camera side: 'front' (default) or 'side' profile, which shows sitting clearly. */
   view?: 'front' | 'side';

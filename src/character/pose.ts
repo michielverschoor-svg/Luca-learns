@@ -48,6 +48,11 @@ export type LucaPose = {
   scrabble: number;
   /** Subtle breathing, -1..1. */
   breathe: number;
+  /** Side view run cycle strength (0..1) and phase (radians). */
+  run: number;
+  runPhase: number;
+  /** Side view: ears streaming back (degrees), from speed or follow-through. */
+  earStream: number;
 };
 
 export const restPose = (expression: Expression): LucaPose => ({
@@ -75,4 +80,7 @@ export const restPose = (expression: Expression): LucaPose => ({
   scrabblePhase: 0,
   scrabble: 0,
   breathe: 0,
+  run: 0,
+  runPhase: 0,
+  earStream: 0,
 });

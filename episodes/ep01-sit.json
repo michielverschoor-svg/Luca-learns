@@ -17,35 +17,61 @@
   "scenes": [
     {
       "id": "s01",
-      "durationSec": 6,
-      "shot": "Wide. Luca zooms around the room, spins after his own tail and crashes into his platypus.",
+      "durationSec": 8,
+      "shot": "Wide. Side view. Luca does zoomies: he races across the room and out, races back, skids, and crashes into his platypus.",
+      "view": "side",
+      "framing": "wide",
       "expression": "smug",
-      "animation": [
-        "body:spin",
-        "tail:fast wag",
-        "body:jump"
+      "beats": [
+        {
+          "at": 5.3,
+          "expression": "surprised"
+        },
+        {
+          "at": 6.4,
+          "expression": "smug"
+        }
       ],
-      "voiceover": "Good morning. I have energy. All of it.",
+      "animation": [
+        "body:zoomies"
+      ],
+      "voiceover": [
+        {
+          "text": "Good morning. I have energy. All of it.",
+          "at": 6.2
+        }
+      ],
       "sfx": [
         "whoosh",
-        "boing",
+        "skid",
+        "thump",
         "squeak"
       ],
       "platypus": true
     },
     {
       "id": "s02",
-      "durationSec": 6,
-      "shot": "Medium. Luca jumps at the human's legs and slides down, paws scrabbling.",
+      "durationSec": 5,
+      "shot": "Medium. Side view. Luca jumps at the human's legs and slides down, paws scrabbling.",
       "view": "side",
       "expression": "surprised",
       "animation": [
         "body:jump",
         "body:slide down",
         "paws:scrabble",
-        "tail:fast wag"
+        "tail:fast wag",
+        "camera:punch-in at 3.2s"
       ],
-      "voiceover": "Hi! Hi! Did you know I'm here? HI!",
+      "voiceover": [
+        {
+          "text": "Hi! Hi!",
+          "at": 0.3
+        },
+        {
+          "text": "Did you know I'm here? HI!",
+          "at": 2.2
+        }
+      ],
       "sfx": [
         "boing",
         "thump",
@@ -57,12 +83,32 @@
       "id": "s03",
       "durationSec": 5,
       "shot": "Close-up. The human holds a treat just out of reach. Luca stares at it.",
-      "expression": "betrayed",
+      "expression": "curious",
+      "beats": [
+        {
+          "at": 1.7,
+          "expression": "betrayed"
+        }
+      ],
       "animation": [
         "head:small tilt",
-        "blink"
+        "blink",
+        "camera:punch-in at 3.2s"
       ],
-      "voiceover": "She has a treat. I do not have a treat. This is a crime.",
+      "voiceover": [
+        {
+          "text": "She has a treat.",
+          "at": 0.3
+        },
+        {
+          "text": "I do not have a treat.",
+          "at": 1.7
+        },
+        {
+          "text": "This is a crime.",
+          "at": 3.2
+        }
+      ],
       "sfx": [
         "sad trombone (short)"
       ],

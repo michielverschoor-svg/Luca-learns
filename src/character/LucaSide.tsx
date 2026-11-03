@@ -283,7 +283,7 @@ const SideHead: React.FC<{pose: LucaPose}> = ({pose}) => {
       <Sketch d="M-14 70l-8 10l10 2l-6 10l12 0" seed="side-cheek-fluff" />
       <Hatch d="M-56 -10q6 10 2 20M-60 16q6 10 2 20M6 -62q2 10 -2 16M-16 -64q2 10 -2 16" />
       {/* soft triangle ear, folded forward */}
-      <g transform={`rotate(${-earLift} -22 -52)`}>
+      <g transform={`rotate(${-earLift + pose.earStream} -22 -52)`}>
         <Sketch
           d="M-6 -56Q-34 -60 -60 -40Q-58 4 -42 40Q-34 46 -28 36Q-16 -4 -6 -56Z"
           fill={LUCA.ears}
@@ -310,16 +310,26 @@ export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
   const breath = 1 + 0.008 * pose.breathe;
   const air = Math.min(0.5, Math.max(0, -pose.bodyY / 500));
 
-  const hind = (dx: number): Pt[] => [add(k.knee, [dx, 0]), add(k.hock, [dx, 0]), add(k.hindPaw, [dx, 0])];
+  // Gallop: each leg swings forward and back, lifting as it comes forward.
+  const swing = (phase: number, reach: number, lift: number): Pt => [
+    reach * Math.sin(pose.runPhase + phase) * pose.run,
+    -lift * Math.max(0, Math.cos(pose.runPhase + phase)) * pose.run,
+  ];
+  const hindPaw = (dx: number, phase: number): Pt => add(add(k.hindPaw, [dx, 0]), swing(phase, 46, 26));
+  const hind = (dx: number, phase = Math.PI): Pt[] => [
+    add(k.knee, add([dx, 0], swing(phase, 12, 6))),
+    add(k.hock, add([dx, 0], swing(phase, 28, 16))),
+    hindPaw(dx, phase),
+  ];
   const shoulder = add(k.chest, [10, 26]);
   // Front paws reach forward and up when he jumps at something, and paddle when scrabbling.
   const frontPaw = (dx: number, phase: number): Pt => {
     const scr = -22 * pose.scrabble * Math.max(0, Math.sin(pose.scrabblePhase + phase));
-    return add(k.frontPaw, [dx + 56 * pose.reach, -34 * pose.reach + scr]);
+    return add(add(k.frontPaw, [dx + 56 * pose.reach, -34 * pose.reach + scr]), swing(phase, 52, 30));
   };
   const front = (dx: number, phase = 0): Pt[] => [
     add(shoulder, [dx, 0]),
-    add(k.elbow, [dx + 34 * pose.reach, -14 * pose.reach]),
+    add(add(k.elbow, [dx + 34 * pose.reach, -14 * pose.reach]), swing(phase, 22, 12)),
     frontPaw(dx, phase),
   ];
   const neckBase = add(k.chest, [16, -28]);
@@ -349,13 +359,13 @@ export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
       <ellipse cx={0} cy={4} rx={150 * (1 - air)} ry={12} fill="#000" opacity={0.07 * (1 - air)} />
       <Hatch d="M-140 10L140 10M-110 16L110 16" opacity={0.5 * (1 - air)} />
       <g
-        transform={`translate(${pose.bodyX} ${pose.bodyY}) rotate(${pose.lean}) scale(${Math.sign(pose.spin || 1) * Math.max(0.06, Math.abs(pose.spin))} ${pose.squash * breath}) rotate(${-34 * pose.reach} -70 -13)`}
+        transform={`translate(${pose.bodyX} ${pose.bodyY}) rotate(${pose.lean}) scale(${Math.sign(pose.spin || 1) * Math.max(0.06, Math.abs(pose.spin))} ${pose.squash * breath}) rotate(${-34 * pose.reach} -70 -13) translate(0 ${-14 * Math.abs(Math.sin(pose.runPhase)) * pose.run}) rotate(${5 * Math.sin(pose.runPhase) * pose.run} 0 -100)`}
       >
         {/* far legs, in the haunch shade */}
-        <Union shapes={[{t: 'seg', pts: hind(-16), w: 28}]} fill={LUCA.haunches} seed="side-hind-far" />
-        {paw(add(k.hindPaw, [-16, 0]), LUCA.haunches, 'side-hpaw-far', false)}
-        <Union shapes={[{t: 'seg', pts: front(-18, Math.PI), w: 34}]} fill={LUCA.haunches} seed="side-front-far" />
-        {paw(frontPaw(-18, Math.PI), LUCA.haunches, 'side-fpaw-far', false)}
+        <Union shapes={[{t: 'seg', pts: hind(-16, Math.PI + 0.7), w: 28}]} fill={LUCA.haunches} seed="side-hind-far" />
+        {paw(hindPaw(-16, Math.PI + 0.7), LUCA.haunches, 'side-hpaw-far', false)}
+        <Union shapes={[{t: 'seg', pts: front(-18, Math.PI * (1 - pose.run) + 0.7 * pose.run), w: 34}]} fill={LUCA.haunches} seed="side-front-far" />
+        {paw(frontPaw(-18, Math.PI * (1 - pose.run) + 0.7 * pose.run), LUCA.haunches, 'side-fpaw-far', false)}
 
         {/* feathered tail */}
         <g transform={`rotate(${pose.tailWag} ${tailBase[0]} ${tailBase[1]})`}>
@@ -396,8 +406,12 @@ export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
 
         {/* near hind leg: big haunch with the lower leg folding under it */}
         <Union shapes={[{t: 'seg', pts: hind(0), w: 30}]} fill={LUCA.coat} seed="side-hind-near" />
-        {paw(k.hindPaw, LUCA.muzzle, 'side-hpaw-near', true)}
-        <Union shapes={[{t: 'ellipse', c: k.thigh, rx: 56, ry: 44, rot: k.thighRot}]} fill={LUCA.haunches} seed="side-thigh" />
+        {paw(hindPaw(0, Math.PI), LUCA.muzzle, 'side-hpaw-near', true)}
+        <Union
+          shapes={[{t: 'ellipse', c: k.thigh, rx: 56, ry: 44, rot: k.thighRot + 18 * Math.sin(pose.runPhase + Math.PI) * pose.run}]}
+          fill={LUCA.haunches}
+          seed="side-thigh"
+        />
         <Sketch
           d={`M${k.thigh[0] - 44} ${k.thigh[1] + 18}l-8 8l9 2l-6 9l10 2`}
           strokeWidth={2.2}

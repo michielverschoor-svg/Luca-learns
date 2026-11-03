@@ -282,6 +282,15 @@ def bubble_pop():
     return pad(x * 0.7, 0.05)
 
 
+def skid():
+    """Paws skidding on a smooth floor: a falling squeal over scratchy noise."""
+    sec = 0.55
+    n = int(sec * SR)
+    squeal = np.sin(2 * math.pi * np.cumsum(np.linspace(1100, 700, n)) / SR) * 0.5
+    scratch = biquad(noise(sec), "bp", 3200, 1.2) * 0.8
+    return (squeal + scratch) * env(n, 0.01, 0.25)
+
+
 EFFECTS = {
     "room-tone": room_tone,
     "dramatic-sigh": dramatic_sigh,
@@ -304,6 +313,7 @@ EFFECTS = {
     "ding": ding,
     "chime": chime,
     "bubble-pop": bubble_pop,
+    "skid": skid,
 }
 
 
