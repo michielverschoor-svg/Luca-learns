@@ -87,43 +87,43 @@ const Union: React.FC<{shapes: Shape[]; fill: string; seed: string}> = ({shapes,
 /** Key positions for standing, sitting and bowing. Blended by the pose. */
 const KEY = {
   stand: {
-    chest: [50, -120] as Pt,
-    rump: [-70, -122] as Pt,
-    head: [118, -214] as Pt,
-    thigh: [-66, -100] as Pt,
+    chest: [46, -108] as Pt,
+    rump: [-58, -110] as Pt,
+    head: [108, -206] as Pt,
+    thigh: [-56, -92] as Pt,
     thighRot: 72,
-    knee: [-54, -62] as Pt,
-    hock: [-88, -34] as Pt,
-    hindPaw: [-80, -13] as Pt,
-    elbow: [58, -58] as Pt,
-    frontPaw: [62, -13] as Pt,
-    tailTip: [-60, -50] as Pt,
+    knee: [-46, -56] as Pt,
+    hock: [-76, -30] as Pt,
+    hindPaw: [-70, -13] as Pt,
+    elbow: [52, -50] as Pt,
+    frontPaw: [56, -13] as Pt,
+    tailTip: [-48, -48] as Pt,
   },
   sit: {
-    chest: [40, -156] as Pt,
-    rump: [-46, -64] as Pt,
-    head: [100, -258] as Pt,
-    thigh: [-38, -44] as Pt,
+    chest: [38, -140] as Pt,
+    rump: [-40, -58] as Pt,
+    head: [94, -240] as Pt,
+    thigh: [-32, -40] as Pt,
     thighRot: 6,
-    knee: [6, -40] as Pt,
-    hock: [-78, -15] as Pt,
-    hindPaw: [8, -13] as Pt,
-    elbow: [54, -70] as Pt,
-    frontPaw: [60, -13] as Pt,
-    tailTip: [-80, 60] as Pt,
+    knee: [8, -36] as Pt,
+    hock: [-68, -15] as Pt,
+    hindPaw: [10, -13] as Pt,
+    elbow: [50, -62] as Pt,
+    frontPaw: [56, -13] as Pt,
+    tailTip: [-66, 50] as Pt,
   },
   bow: {
-    chest: [64, -76] as Pt,
-    rump: [-70, -132] as Pt,
-    head: [140, -132] as Pt,
-    thigh: [-66, -108] as Pt,
+    chest: [60, -68] as Pt,
+    rump: [-58, -118] as Pt,
+    head: [130, -126] as Pt,
+    thigh: [-56, -98] as Pt,
     thighRot: 72,
-    knee: [-54, -66] as Pt,
-    hock: [-88, -34] as Pt,
-    hindPaw: [-80, -13] as Pt,
-    elbow: [48, -28] as Pt,
-    frontPaw: [124, -13] as Pt,
-    tailTip: [-36, -76] as Pt,
+    knee: [-46, -60] as Pt,
+    hock: [-76, -30] as Pt,
+    hindPaw: [-70, -13] as Pt,
+    elbow: [44, -24] as Pt,
+    frontPaw: [114, -13] as Pt,
+    tailTip: [-30, -66] as Pt,
   },
 };
 type Key = typeof KEY.stand;
@@ -185,11 +185,11 @@ const SideHead: React.FC<{pose: LucaPose}> = ({pose}) => {
   const face = FACES[pose.expression];
   const lid = Math.min(1, Math.max(face.lid, pose.blink));
   const look = pose.look ?? face.look;
-  const r = face.eyeR * 1.15;
-  const ex = 20 + look.x * 2;
-  const ey = -16 + look.y * 2;
+  const r = face.eyeR * 1.45;
+  const ex = 24 + look.x * 2;
+  const ey = -6 + look.y * 2;
   const open = Math.max(pose.mouthOpen, face.mouth === 'open' ? 0.55 : 0, pose.chew * 0.35);
-  const jaw = 24 * open;
+  const jaw = 22 * open;
   const earLift = (face.ears[0] + face.ears[1]) / 2 + pose.earBounce;
 
   let eye: React.ReactNode;
@@ -199,16 +199,16 @@ const SideHead: React.FC<{pose: LucaPose}> = ({pose}) => {
     eye = (
       <g>
         <ellipse cx={ex} cy={ey} rx={r * 0.9} ry={r + 2} fill={LUCA.sclera} stroke={PENCIL} strokeWidth={3.6} />
-        <circle cx={ex + 3 + look.x * 3} cy={ey + 1 + look.y * 3} r={5.5} fill={LUCA.eyes} />
-        <circle cx={ex + 5} cy={ey - 1} r={1.8} fill={LUCA.sclera} />
+        <circle cx={ex + 3 + look.x * 4} cy={ey + 1 + look.y * 4} r={7} fill={LUCA.eyes} />
+        <circle cx={ex + 5.5} cy={ey - 1.5} r={2.2} fill={LUCA.sclera} />
       </g>
     );
   } else {
     eye = (
       <g>
         <circle cx={ex} cy={ey} r={r} fill={LUCA.eyes} />
-        <circle cx={ex + r * 0.35} cy={ey - r * 0.35} r={r * 0.33} fill={LUCA.sclera} />
-        <circle cx={ex - r * 0.35} cy={ey + r * 0.4} r={r * 0.14} fill={LUCA.sclera} opacity={0.85} />
+        <circle cx={ex + r * 0.32} cy={ey - r * 0.32} r={r * 0.36} fill={LUCA.sclera} />
+        <circle cx={ex - r * 0.38} cy={ey + r * 0.38} r={r * 0.16} fill={LUCA.sclera} opacity={0.9} />
       </g>
     );
   }
@@ -218,29 +218,29 @@ const SideHead: React.FC<{pose: LucaPose}> = ({pose}) => {
   if (face.mouth === 'o' && open < 0.05) {
     mouth = (
       <g>
-        <ellipse cx={64} cy={42} rx={7} ry={9} fill={LUCA.mouth} />
-        <Sketch d="M74 26L72 32M57 42Q57 32 64 32Q71 32 71 42Q71 52 64 52Q57 52 57 42Z" seed="side-mouth-o" strokeWidth={2.2} />
+        <ellipse cx={60} cy={48} rx={6} ry={8} fill={LUCA.mouth} />
+        <Sketch d="M72 32L70 38M54 48Q54 40 60 40Q66 40 66 48Q66 56 60 56Q54 56 54 48Z" seed="side-mouth-o" strokeWidth={2.2} />
       </g>
     );
   } else {
     const d =
       face.mouth === 'smirk'
-        ? 'M74 24L72 32Q60 42 46 34Q42 30 40 24'
+        ? 'M72 30L70 38Q60 46 48 40Q44 36 42 30'
         : face.mouth === 'frown'
-          ? 'M74 24L72 32Q60 30 48 40'
-          : 'M74 24L72 32Q60 42 44 36';
+          ? 'M72 30L70 38Q60 36 50 46'
+          : 'M72 30L70 38Q60 46 48 40';
     mouth = <Sketch d={d} seed="side-mouth" strokeWidth={2.4} />;
   }
 
   return (
     <g>
       {/* lower jaw, opens for barks and chewing */}
-      <g transform={`rotate(${jaw} 36 32)`}>
-        <Union shapes={[{t: 'seg', pts: [[34, 38], [62, 42]], w: 20}]} fill={LUCA.muzzle} seed="side-jaw" />
-        {open > 0.05 ? <path d="M36 30L66 32L64 42L38 40Z" fill={LUCA.mouth} /> : null}
+      <g transform={`rotate(${jaw} 40 40)`}>
+        <Union shapes={[{t: 'seg', pts: [[40, 44], [62, 46]], w: 16}]} fill={LUCA.muzzle} seed="side-jaw" />
+        {open > 0.05 ? <path d="M40 38L66 40L64 48L42 46Z" fill={LUCA.mouth} /> : null}
         {pose.tongue > 0.02 ? (
           <Sketch
-            d={`M54 40Q${58 + 4 * pose.tongue} ${48 + 34 * pose.tongue} ${68} ${50 + 30 * pose.tongue}Q74 ${40 + 20 * pose.tongue} 68 38`}
+            d={`M52 46Q${56 + 4 * pose.tongue} ${54 + 30 * pose.tongue} ${64} ${56 + 26 * pose.tongue}Q70 ${46 + 18 * pose.tongue} 64 44`}
             fill={LUCA.tongue}
             fillOffset={[1, 1]}
             seed="side-tongue"
@@ -249,21 +249,22 @@ const SideHead: React.FC<{pose: LucaPose}> = ({pose}) => {
       </g>
       <Union
         shapes={[
-          {t: 'circle', c: [0, 0], r: 66},
-          {t: 'circle', c: [46, 20], r: 30},
-          {t: 'seg', pts: [[26, 22], [58, 22]], w: 52},
+          {t: 'circle', c: [0, 0], r: 78},
+          {t: 'circle', c: [50, 28], r: 26},
+          {t: 'seg', pts: [[30, 28], [56, 30]], w: 46},
         ]}
         fill={LUCA.head}
         seed="side-skull"
       />
-      {/* short round muzzle */}
-      <ellipse cx={50} cy={22} rx={30} ry={26} fill={LUCA.muzzle} />
-      <Sketch d="M30 -2Q60 -8 74 8" seed="side-muzzle-line" strokeWidth={2} />
-      {/* big round black nose */}
-      <ellipse cx={76} cy={12} rx={15} ry={12} fill={LUCA.eyes} stroke={PENCIL} strokeWidth={3} />
-      <circle cx={72} cy={8} r={3.4} fill={LUCA.sclera} opacity={0.8} />
+      {/* tiny round muzzle */}
+      <ellipse cx={52} cy={30} rx={26} ry={22} fill={LUCA.muzzle} />
+      {/* blush */}
+      <ellipse cx={4} cy={34} rx={15} ry={9} fill="#FF9DB0" opacity={0.55} />
+      {/* button nose */}
+      <ellipse cx={74} cy={20} rx={12} ry={10} fill={LUCA.eyes} stroke={PENCIL} strokeWidth={3} />
+      <circle cx={71} cy={17} r={3} fill={LUCA.sclera} opacity={0.85} />
       {mouth}
-      {/* eye, lid and brow */}
+      {/* big eye, lid and brow */}
       {eye}
       {lid > 0.02 && lid < 0.92 ? (
         <g>
@@ -271,26 +272,25 @@ const SideHead: React.FC<{pose: LucaPose}> = ({pose}) => {
           <path d={`M${ex - r - 2} ${lidY}L${ex + r + 2} ${lidY}`} stroke={PENCIL} strokeWidth={4} strokeLinecap="round" />
         </g>
       ) : null}
-      <Sketch d={`M${ex - 16} ${ey - 24 - (face.eyeStyle === 'sclera' ? 6 : 0)}Q${ex} ${ey - 34} ${ex + 16} ${ey - 24}`} strokeWidth={2.4} seed="side-brow" />
+      <Sketch d={`M${ex - 14} ${ey - r - 12 - (face.eyeStyle === 'sclera' ? 4 : 0)}Q${ex} ${ey - r - 20} ${ex + 14} ${ey - r - 12}`} strokeWidth={2.4} seed="side-brow" />
       {pose.treatInMouth ? (
-        <g transform="translate(70 40) rotate(-10) scale(0.9)">
+        <g transform="translate(70 50) rotate(-10) scale(0.9)">
           <TreatShape />
         </g>
       ) : null}
       {/* top tufts and cheek fluff, as on the front view */}
-      <Sketch d="M-14 -64Q-8 -82 2 -68M0 -66Q10 -82 16 -64M-28 -60Q-24 -74 -16 -62" seed="side-tufts" />
-      <Sketch d="M-10 60l-8 10l10 2l-6 10l12 0" seed="side-cheek-fluff" />
-      <Hatch d="M-40 -16q6 10 2 20M-46 10q6 10 2 20M8 -48q2 10 -2 16M-14 -50q2 10 -2 16" />
-      {/* near ear on top */}
-      <g transform={`rotate(${-earLift} -6 -42)`}>
+      <Sketch d="M-14 -76Q-8 -94 2 -80M0 -78Q10 -94 16 -76M-28 -72Q-24 -86 -16 -74" seed="side-tufts" />
+      <Sketch d="M-14 70l-8 10l10 2l-6 10l12 0" seed="side-cheek-fluff" />
+      <Hatch d="M-56 -10q6 10 2 20M-60 16q6 10 2 20M6 -62q2 10 -2 16M-16 -64q2 10 -2 16" />
+      {/* soft triangle ear, folded forward */}
+      <g transform={`rotate(${-earLift} -22 -52)`}>
         <Sketch
-          d="M-6 -46Q-46 -40 -50 20Q-52 62 -34 74Q-20 48 -12 16"
-          fillD="M-6 -46Q-46 -40 -50 20Q-52 62 -34 74Q-20 48 -12 16Q0 -14 -6 -46Z"
+          d="M-6 -56Q-34 -60 -60 -40Q-58 4 -42 40Q-34 46 -28 36Q-16 -4 -6 -56Z"
           fill={LUCA.ears}
-          detail="M-50 46l8 6l-6 8l8 6l-4 6"
+          detail="M-56 -36Q-44 -30 -30 -44"
           seed="side-ear"
         />
-        <Hatch d="M-38 -14q4 12 0 22M-30 6q4 12 0 22" />
+        <Hatch d="M-46 -16q4 12 0 20M-38 4q4 10 0 18" />
       </g>
     </g>
   );
@@ -328,7 +328,7 @@ export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
 
   const paw = (p: Pt, fill: string, seed: string, toes: boolean) => (
     <g>
-      <Union shapes={[{t: 'ellipse', c: [p[0] + 12, -14], rx: 32, ry: 16, rot: 0}]} fill={fill} seed={seed} />
+      <Union shapes={[{t: 'ellipse', c: [p[0] + 12, -14], rx: 34, ry: 17, rot: 0}]} fill={fill} seed={seed} />
       {toes ? <Sketch d={`M${p[0] + 26} -24l0 16M${p[0] + 36} -22l0 14`} strokeWidth={2} seed={`${seed}-toes`} /> : null}
     </g>
   );
@@ -360,7 +360,7 @@ export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
         {/* body: chest, rump and neck as one silhouette */}
         <Union
           shapes={[
-            {t: 'seg', pts: [k.chest, k.rump], w: 104},
+            {t: 'seg', pts: [k.chest, k.rump], w: 108},
             {t: 'circle', c: k.chest, r: 58},
             {t: 'circle', c: k.rump, r: 54},
             {t: 'seg', pts: [neckBase, lp(neckBase, k.head, 0.7)], w: 70},
