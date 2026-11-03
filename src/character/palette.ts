@@ -1,0 +1,20 @@
+export const LUCA = {
+  coat: '#EFD9A8',
+  head: '#F0DAAA',
+  haunches: '#E4C88C',
+  ears: '#DDB46C',
+  muzzle: '#F8EBCB',
+  chest: '#F9EED2',
+  eyes: '#2B1B14',
+  bandana: '#C8342B',
+  bandanaPattern: '#F6EEDC',
+  platypus: '#D9D66A',
+  platypusBill: '#E8E084',
+  tongue: '#E07F7A',
+  mouth: '#5A2A22',
+  sclera: '#FFFDF5',
+  tear: '#BFDDF0',
+  treat: '#B5793A',
+  /** What a lid looks like over the head fill: head colour seen through 92% opacity. */
+  lid: '#F0DBAC',
+};

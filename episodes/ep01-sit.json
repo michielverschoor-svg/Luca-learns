@@ -1,0 +1,298 @@
+{
+  "id": "ep01",
+  "title": "Luca Learns to Sit",
+  "youtubeTitle": "Luca vs. The Treat: Teaching Sit Step by Step (Puppy Training Tips)",
+  "fps": 30,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "background": "paper",
+  "thumbnail": {
+    "text": "SIT?!",
+    "expression": "treat-hypnotized",
+    "color": "#2FA3E6",
+    "badge": "Luca Learns"
+  },
+  "scenes": [
+    {
+      "id": "s01",
+      "durationSec": 8,
+      "shot": "Wide. Side view. Luca does zoomies: he races across the room and out, races back, skids, and crashes into his platypus.",
+      "view": "side",
+      "framing": "wide",
+      "expression": "smug",
+      "beats": [
+        {
+          "at": 5.3,
+          "expression": "surprised"
+        },
+        {
+          "at": 6.4,
+          "expression": "smug"
+        }
+      ],
+      "animation": [
+        "body:zoomies"
+      ],
+      "voiceover": [
+        {
+          "text": "Good morning. I have energy. All of it.",
+          "at": 6.2
+        }
+      ],
+      "sfx": [
+        "whoosh",
+        "skid",
+        "thump",
+        "squeak"
+      ],
+      "platypus": true
+    },
+    {
+      "id": "s02",
+      "durationSec": 5,
+      "shot": "Medium. Side view. Luca jumps at the human's legs and slides down, paws scrabbling.",
+      "view": "side",
+      "expression": "surprised",
+      "animation": [
+        "body:jump",
+        "body:slide down",
+        "paws:scrabble",
+        "tail:fast wag",
+        "camera:punch-in at 3.2s"
+      ],
+      "voiceover": [
+        {
+          "text": "Hi! Hi!",
+          "at": 0.3
+        },
+        {
+          "text": "Did you know I'm here? HI!",
+          "at": 2.2
+        }
+      ],
+      "sfx": [
+        "boing",
+        "thump",
+        "scrabble",
+        "slide whistle"
+      ]
+    },
+    {
+      "id": "s03",
+      "durationSec": 5,
+      "shot": "Close-up. The human holds a treat just out of reach. Luca stares at it.",
+      "expression": "curious",
+      "beats": [
+        {
+          "at": 1.7,
+          "expression": "betrayed"
+        }
+      ],
+      "animation": [
+        "head:small tilt",
+        "blink",
+        "camera:punch-in at 3.2s"
+      ],
+      "voiceover": [
+        {
+          "text": "She has a treat.",
+          "at": 0.3
+        },
+        {
+          "text": "I do not have a treat.",
+          "at": 1.7
+        },
+        {
+          "text": "This is a crime.",
+          "at": 3.2
+        }
+      ],
+      "sfx": [
+        "sad trombone (short)"
+      ],
+      "treat": true
+    },
+    {
+      "id": "title",
+      "type": "titleCard",
+      "durationSec": 4,
+      "series": "Luca Learns",
+      "episodeLabel": "Episode 1",
+      "title": "Sit!"
+    },
+    {
+      "id": "step1",
+      "type": "stepCard",
+      "durationSec": 3,
+      "step": 1,
+      "text": "Hold a treat right at his nose."
+    },
+    {
+      "id": "s04",
+      "durationSec": 5,
+      "shot": "Close-up. The treat appears right in front of his nose. He goes cross-eyed with love.",
+      "expression": "treat-hypnotized",
+      "animation": [
+        "tongue:out",
+        "blink:every 2s",
+        "tail:wag"
+      ],
+      "voiceover": "Oh. Oh, hello. I would follow you anywhere.",
+      "sfx": [
+        "rising sparkle",
+        "slurp"
+      ],
+      "treat": true
+    },
+    {
+      "id": "step2",
+      "type": "stepCard",
+      "durationSec": 3,
+      "step": 2,
+      "text": "Move it slowly up and back over his head."
+    },
+    {
+      "id": "s05",
+      "durationSec": 6,
+      "shot": "Side view. The treat moves up and back. His head tips back and his bottom starts to sink.",
+      "view": "side",
+      "expression": "treat-hypnotized",
+      "animation": [
+        "head:tip back",
+        "eyes:track treat",
+        "tail:slow wag"
+      ],
+      "voiceover": "Up... and back... my neck was not built for this.",
+      "sfx": [
+        "slide whistle up",
+        "rising sparkle"
+      ]
+    },
+    {
+      "id": "s06",
+      "durationSec": 6,
+      "shot": "Side view. Patience runs out. He rears up and jumps for the treat, misses and slides back down.",
+      "expression": "betrayed",
+      "animation": [
+        "body:jump",
+        "body:slide down"
+      ],
+      "voiceover": [
+        "Plan B: I just take it!",
+        "That didn't work."
+      ],
+      "sfx": [
+        "boing",
+        "thump",
+        "slide whistle",
+        "sad trombone (short)"
+      ],
+      "treat": true,
+      "view": "side"
+    },
+    {
+      "id": "step3",
+      "type": "stepCard",
+      "durationSec": 4,
+      "step": 3,
+      "text": "The moment his bottom touches the floor: say \"Yes!\" and give the treat."
+    },
+    {
+      "id": "s07",
+      "durationSec": 7,
+      "shot": "Side view. His bottom plops onto the floor. The hand gives him the treat.",
+      "view": "side",
+      "expression": "surprised",
+      "animation": [
+        "body:sit-drop",
+        "treat:handoff",
+        "chew"
+      ],
+      "humanLine": "Yes!",
+      "voiceover": "Wait. My bottom touched the floor... and a snack appeared?!",
+      "sfx": [
+        "plop",
+        "ding",
+        "crunch"
+      ]
+    },
+    {
+      "id": "s08",
+      "durationSec": 8,
+      "shot": "Quick cuts. Luca sits in the kitchen, the bathroom and in front of the fridge.",
+      "expression": "smug",
+      "animation": [
+        "cut:kitchen",
+        "cut:bathroom",
+        "cut:fridge",
+        "head:tilt each cut"
+      ],
+      "voiceover": [
+        "Kitchen: sit. Snack!",
+        "Bathroom: sit. Snack!",
+        "Fridge: sit... I'll wait."
+      ],
+      "sfx": [
+        "pop cut x3"
+      ]
+    },
+    {
+      "id": "step4",
+      "type": "stepCard",
+      "durationSec": 3,
+      "step": 4,
+      "text": "Say \"sit\" just before you lure."
+    },
+    {
+      "id": "s09",
+      "durationSec": 5,
+      "shot": "Medium. The human says Sit. Luca drops into a perfect sit before the hand even moves.",
+      "view": "side",
+      "expression": "smug",
+      "animation": [
+        "body:sit-drop",
+        "head:small tilt",
+        "tail:wag"
+      ],
+      "humanLine": "Sit!",
+      "voiceover": "She said the magic word. I'm basically a genius.",
+      "sfx": [
+        "ding",
+        "plop",
+        "twinkle"
+      ]
+    },
+    {
+      "id": "s10",
+      "durationSec": 6,
+      "shot": "Medium. Still sitting, Luca slowly falls asleep and tips over onto his platypus.",
+      "expression": "sleepy",
+      "animation": [
+        "blink",
+        "head:slow tilt",
+        "body:tip over"
+      ],
+      "voiceover": "Five minutes of school. That's a lot of school.",
+      "sfx": [
+        "snore",
+        "squeak"
+      ],
+      "platypus": true
+    },
+    {
+      "id": "tip",
+      "type": "tipCard",
+      "durationSec": 12,
+      "heading": "How to teach Sit",
+      "steps": [
+        "Hold a treat at his nose, then move it slowly up and back over his head.",
+        "The moment his bottom touches the floor, say \"Yes!\" and give the treat.",
+        "After a few reps, say \"sit\" just before the lure.",
+        "Keep sessions to 3 to 5 minutes. Puppies tire quickly.",
+        "Practice in different rooms so he learns it everywhere."
+      ]
+    }
+  ]
+}

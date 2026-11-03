@@ -1,0 +1,447 @@
+import React from 'react';
+import {random, useCurrentFrame} from 'remotion';
+import {FACES} from './expressions';
+import {LUCA} from './palette';
+import type {LucaPose} from './pose';
+import {Hatch, PENCIL, Sketch} from './sketch';
+import {TreatShape} from './HeadParts';
+
+/*
+ * Luca in profile, facing right. Origin is on the ground under the middle of
+ * his body; y < 0 is up. Built from simple round shapes so the body can move
+ * between standing (pose.stand = 1), sitting (stand = 0) and a play bow.
+ *
+ * Each body "union" is drawn in three passes: a faint offset outline (the
+ * doubled pencil line), a solid outline, then the fill on top, so overlapping
+ * shapes merge into one outlined silhouette.
+ */
+
+type Pt = [number, number];
+type Shape =
+  | {t: 'circle'; c: Pt; r: number}
+  | {t: 'seg'; pts: Pt[]; w: number}
+  | {t: 'ellipse'; c: Pt; rx: number; ry: number; rot: number};
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const lp = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
+const add = (a: Pt, b: Pt): Pt => [a[0] + b[0], a[1] + b[1]];
+const ptsStr = (pts: Pt[]) => pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+
+const ShapeEl: React.FC<{s: Shape; grow: number; color: string; offset?: Pt; opacity?: number}> = ({
+  s,
+  grow,
+  color,
+  offset = [0, 0],
+  opacity = 1,
+}) => {
+  const tr = `translate(${offset[0]} ${offset[1]})`;
+  if (s.t === 'circle') {
+    return <circle cx={s.c[0]} cy={s.c[1]} r={s.r + grow} fill={color} opacity={opacity} transform={tr} />;
+  }
+  if (s.t === 'ellipse') {
+    return (
+      <ellipse
+        cx={0}
+        cy={0}
+        rx={s.rx + grow}
+        ry={s.ry + grow}
+        fill={color}
+        opacity={opacity}
+        transform={`${tr} translate(${s.c[0]} ${s.c[1]}) rotate(${s.rot})`}
+      />
+    );
+  }
+  return (
+    <polyline
+      points={ptsStr(s.pts)}
+      fill="none"
+      stroke={color}
+      strokeWidth={s.w + grow * 2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      opacity={opacity}
+      transform={tr}
+    />
+  );
+};
+
+const Union: React.FC<{shapes: Shape[]; fill: string; seed: string}> = ({shapes, fill, seed}) => {
+  const frame = useCurrentFrame();
+  const k = Math.floor(frame / 4);
+  const ghost: Pt = [2 + (random(`${seed}x${k}`) - 0.5) * 1.4, -1.5 + (random(`${seed}y${k}`) - 0.5) * 1.4];
+  return (
+    <g>
+      {shapes.map((s, i) => (
+        <ShapeEl key={`g${i}`} s={s} grow={4.4} color={PENCIL} offset={ghost} opacity={0.35} />
+      ))}
+      {shapes.map((s, i) => (
+        <ShapeEl key={`o${i}`} s={s} grow={4.4} color={PENCIL} />
+      ))}
+      {shapes.map((s, i) => (
+        <ShapeEl key={`f${i}`} s={s} grow={0} color={fill} />
+      ))}
+    </g>
+  );
+};
+
+/** Key positions for standing, sitting and bowing. Blended by the pose. */
+const KEY = {
+  stand: {
+    chest: [46, -108] as Pt,
+    rump: [-58, -110] as Pt,
+    head: [108, -206] as Pt,
+    thigh: [-56, -92] as Pt,
+    thighRot: 72,
+    knee: [-46, -56] as Pt,
+    hock: [-76, -30] as Pt,
+    hindPaw: [-70, -13] as Pt,
+    elbow: [52, -50] as Pt,
+    frontPaw: [56, -13] as Pt,
+    tailTip: [-48, -48] as Pt,
+  },
+  sit: {
+    chest: [38, -140] as Pt,
+    rump: [-40, -58] as Pt,
+    head: [94, -240] as Pt,
+    thigh: [-32, -40] as Pt,
+    thighRot: 6,
+    knee: [8, -36] as Pt,
+    hock: [-68, -15] as Pt,
+    hindPaw: [10, -13] as Pt,
+    elbow: [50, -62] as Pt,
+    frontPaw: [56, -13] as Pt,
+    tailTip: [-66, 50] as Pt,
+  },
+  bow: {
+    chest: [60, -68] as Pt,
+    rump: [-58, -118] as Pt,
+    head: [130, -126] as Pt,
+    thigh: [-56, -98] as Pt,
+    thighRot: 72,
+    knee: [-46, -60] as Pt,
+    hock: [-76, -30] as Pt,
+    hindPaw: [-70, -13] as Pt,
+    elbow: [44, -24] as Pt,
+    frontPaw: [114, -13] as Pt,
+    tailTip: [-30, -66] as Pt,
+  },
+};
+type Key = typeof KEY.stand;
+
+const blend = (a: Key, b: Key, t: number): Key => {
+  const out = {} as Record<keyof Key, unknown>;
+  for (const k of Object.keys(a) as (keyof Key)[]) {
+    const va = a[k];
+    const vb = b[k];
+    out[k] = typeof va === 'number' ? lerp(va, vb as number, t) : lp(va as Pt, vb as Pt, t);
+  }
+  return out as Key;
+};
+const blendKeys = (stand: number, bow: number): Key => {
+  const base = blend(KEY.sit, KEY.stand, stand);
+  return bow > 0 ? blend(base, KEY.bow, bow) : base;
+};
+
+/** A zigzag fur edge from a to b, teeth pointing along `dir` (a unit-ish offset). */
+const zigzag = (a: Pt, b: Pt, teeth: number, depth: Pt): string => {
+  let d = `M${a[0].toFixed(1)} ${a[1].toFixed(1)}`;
+  for (let i = 1; i <= teeth * 2; i++) {
+    const p = lp(a, b, i / (teeth * 2));
+    const o = i % 2 === 1 ? depth : [0, 0];
+    d += `L${(p[0] + o[0]).toFixed(1)} ${(p[1] + o[1]).toFixed(1)}`;
+  }
+  return d;
+};
+
+/** Feathered golden-retriever tail along a quadratic curve, zigzag fringe underneath. */
+const tailPath = (base: Pt, mid: Pt, tip: Pt): string => {
+  const q = (t: number): Pt => [
+    (1 - t) * (1 - t) * base[0] + 2 * (1 - t) * t * mid[0] + t * t * tip[0],
+    (1 - t) * (1 - t) * base[1] + 2 * (1 - t) * t * mid[1] + t * t * tip[1],
+  ];
+  const n = 13;
+  const top: Pt[] = [];
+  const bottom: Pt[] = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const p = q(t);
+    const p2 = q(Math.min(1, t + 0.01));
+    const p1 = q(Math.max(0, t - 0.01));
+    const dx = p2[0] - p1[0];
+    const dy = p2[1] - p1[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len;
+    const ny = dx / len;
+    const w = 13 * (1 - t * 0.55);
+    const fringe = i === 0 || i === n ? w : i % 2 === 0 ? w + 4 : w + 12 * (1 - t * 0.4);
+    top.push([p[0] - nx * w, p[1] - ny * w]);
+    bottom.push([p[0] + nx * fringe, p[1] + ny * fringe]);
+  }
+  const pts = [...top, ...bottom.reverse()];
+  return `M${pts.map((p) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join('L')}Z`;
+};
+
+const SideHead: React.FC<{pose: LucaPose}> = ({pose}) => {
+  const face = FACES[pose.expression];
+  const lid = Math.min(1, Math.max(face.lid, pose.blink));
+  const look = pose.look ?? face.look;
+  const r = face.eyeR * 1.45;
+  const ex = 24 + look.x * 2;
+  const ey = -6 + look.y * 2;
+  const open = Math.max(pose.mouthOpen, face.mouth === 'open' ? 0.55 : 0, pose.chew * 0.35);
+  const jaw = 22 * open;
+  const earLift = (face.ears[0] + face.ears[1]) / 2 + pose.earBounce;
+
+  let eye: React.ReactNode;
+  if (lid >= 0.92) {
+    eye = <path d={`M${ex - r} ${ey}Q${ex} ${ey + r * 0.6} ${ex + r} ${ey}`} fill="none" stroke={PENCIL} strokeWidth={4.5} strokeLinecap="round" />;
+  } else if (face.eyeStyle === 'sclera') {
+    eye = (
+      <g>
+        <ellipse cx={ex} cy={ey} rx={r * 0.9} ry={r + 2} fill={LUCA.sclera} stroke={PENCIL} strokeWidth={3.6} />
+        <circle cx={ex + 3 + look.x * 4} cy={ey + 1 + look.y * 4} r={7} fill={LUCA.eyes} />
+        <circle cx={ex + 5.5} cy={ey - 1.5} r={2.2} fill={LUCA.sclera} />
+      </g>
+    );
+  } else {
+    eye = (
+      <g>
+        <circle cx={ex} cy={ey} r={r} fill={LUCA.eyes} />
+        <circle cx={ex + r * 0.32} cy={ey - r * 0.32} r={r * 0.36} fill={LUCA.sclera} />
+        <circle cx={ex - r * 0.38} cy={ey + r * 0.38} r={r * 0.16} fill={LUCA.sclera} opacity={0.9} />
+      </g>
+    );
+  }
+  const lidY = ey - r - 2 + lid * (2 * r + 2);
+
+  let mouth: React.ReactNode;
+  if (face.mouth === 'o' && open < 0.05) {
+    mouth = (
+      <g>
+        <ellipse cx={60} cy={48} rx={6} ry={8} fill={LUCA.mouth} />
+        <Sketch d="M72 32L70 38M54 48Q54 40 60 40Q66 40 66 48Q66 56 60 56Q54 56 54 48Z" seed="side-mouth-o" strokeWidth={2.2} />
+      </g>
+    );
+  } else {
+    const d =
+      face.mouth === 'smirk'
+        ? 'M72 30L70 38Q60 46 48 40Q44 36 42 30'
+        : face.mouth === 'frown'
+          ? 'M72 30L70 38Q60 36 50 46'
+          : 'M72 30L70 38Q60 46 48 40';
+    mouth = <Sketch d={d} seed="side-mouth" strokeWidth={2.4} />;
+  }
+
+  return (
+    <g>
+      {/* lower jaw, opens for barks and chewing */}
+      <g transform={`rotate(${jaw} 40 40)`}>
+        <Union shapes={[{t: 'seg', pts: [[40, 44], [62, 46]], w: 16}]} fill={LUCA.muzzle} seed="side-jaw" />
+        {open > 0.05 ? <path d="M40 38L66 40L64 48L42 46Z" fill={LUCA.mouth} /> : null}
+        {pose.tongue > 0.02 ? (
+          <Sketch
+            d={`M52 46Q${56 + 4 * pose.tongue} ${54 + 30 * pose.tongue} ${64} ${56 + 26 * pose.tongue}Q70 ${46 + 18 * pose.tongue} 64 44`}
+            fill={LUCA.tongue}
+            fillOffset={[1, 1]}
+            seed="side-tongue"
+          />
+        ) : null}
+      </g>
+      <Union
+        shapes={[
+          {t: 'circle', c: [0, 0], r: 78},
+          {t: 'circle', c: [50, 28], r: 26},
+          {t: 'seg', pts: [[30, 28], [56, 30]], w: 46},
+        ]}
+        fill={LUCA.head}
+        seed="side-skull"
+      />
+      {/* tiny round muzzle */}
+      <ellipse cx={52} cy={30} rx={26} ry={22} fill={LUCA.muzzle} />
+      {/* blush */}
+      <ellipse cx={4} cy={34} rx={15} ry={9} fill="#FF9DB0" opacity={0.55} />
+      {/* button nose */}
+      <ellipse cx={74} cy={20} rx={12} ry={10} fill={LUCA.eyes} stroke={PENCIL} strokeWidth={3} />
+      <circle cx={71} cy={17} r={3} fill={LUCA.sclera} opacity={0.85} />
+      {mouth}
+      {/* big eye, lid and brow */}
+      {eye}
+      {lid > 0.02 && lid < 0.92 ? (
+        <g>
+          <path d={`M${ex - r - 3} ${ey - r - 4}L${ex + r + 3} ${ey - r - 4}L${ex + r + 3} ${lidY}L${ex - r - 3} ${lidY}Z`} fill={LUCA.head} />
+          <path d={`M${ex - r - 2} ${lidY}L${ex + r + 2} ${lidY}`} stroke={PENCIL} strokeWidth={4} strokeLinecap="round" />
+        </g>
+      ) : null}
+      <Sketch d={`M${ex - 14} ${ey - r - 12 - (face.eyeStyle === 'sclera' ? 4 : 0)}Q${ex} ${ey - r - 20} ${ex + 14} ${ey - r - 12}`} strokeWidth={2.4} seed="side-brow" />
+      {pose.treatInMouth ? (
+        <g transform="translate(70 50) rotate(-10) scale(0.9)">
+          <TreatShape />
+        </g>
+      ) : null}
+      {/* top tufts and cheek fluff, as on the front view */}
+      <Sketch d="M-14 -76Q-8 -94 2 -80M0 -78Q10 -94 16 -76M-28 -72Q-24 -86 -16 -74" seed="side-tufts" />
+      <Sketch d="M-14 70l-8 10l10 2l-6 10l12 0" seed="side-cheek-fluff" />
+      <Hatch d="M-56 -10q6 10 2 20M-60 16q6 10 2 20M6 -62q2 10 -2 16M-16 -64q2 10 -2 16" />
+      {/* soft triangle ear, folded forward */}
+      <g transform={`rotate(${-earLift + pose.earStream} -22 -52)`}>
+        <Sketch
+          d="M-6 -56Q-34 -60 -60 -40Q-58 4 -42 40Q-34 46 -28 36Q-16 -4 -6 -56Z"
+          fill={LUCA.ears}
+          detail="M-56 -36Q-44 -30 -30 -44"
+          seed="side-ear"
+        />
+        <Hatch d="M-46 -16q4 12 0 20M-38 4q4 10 0 18" />
+      </g>
+    </g>
+  );
+};
+
+type Props = {
+  pose: LucaPose;
+  x: number;
+  y: number;
+  scale: number;
+  /** true = facing left. */
+  flip?: boolean;
+};
+
+export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
+  const k = blendKeys(pose.stand, pose.bow);
+  const breath = 1 + 0.008 * pose.breathe;
+  const air = Math.min(0.5, Math.max(0, -pose.bodyY / 500));
+
+  // Gallop: each leg swings forward and back, lifting as it comes forward.
+  const swing = (phase: number, reach: number, lift: number): Pt => [
+    reach * Math.sin(pose.runPhase + phase) * pose.run,
+    -lift * Math.max(0, Math.cos(pose.runPhase + phase)) * pose.run,
+  ];
+  const hindPaw = (dx: number, phase: number): Pt => add(add(k.hindPaw, [dx, 0]), swing(phase, 46, 26));
+  const hind = (dx: number, phase = Math.PI): Pt[] => [
+    add(k.knee, add([dx, 0], swing(phase, 12, 6))),
+    add(k.hock, add([dx, 0], swing(phase, 28, 16))),
+    hindPaw(dx, phase),
+  ];
+  const shoulder = add(k.chest, [10, 26]);
+  // Front paws reach forward and up when he jumps at something, and paddle when scrabbling.
+  const frontPaw = (dx: number, phase: number): Pt => {
+    const scr = -22 * pose.scrabble * Math.max(0, Math.sin(pose.scrabblePhase + phase));
+    return add(add(k.frontPaw, [dx + 56 * pose.reach, -34 * pose.reach + scr]), swing(phase, 52, 30));
+  };
+  const front = (dx: number, phase = 0): Pt[] => [
+    add(shoulder, [dx, 0]),
+    add(add(k.elbow, [dx + 34 * pose.reach, -14 * pose.reach]), swing(phase, 22, 12)),
+    frontPaw(dx, phase),
+  ];
+  const neckBase = add(k.chest, [16, -28]);
+  const tailBase = add(k.rump, [-44, -16]);
+  const tailTip = add(tailBase, k.tailTip);
+  const tailMid: Pt = add(lp(tailBase, tailTip, 0.5), [lerp(-6, -18, pose.stand), lerp(18, -16, pose.stand)]);
+
+  const headRot = pose.headTilt * 0.6 - 26 * pose.tipBack + 10 * pose.bow;
+  const bandA = add(lp(neckBase, k.head, 0.22), [14, 6]);
+  const belly = lp(k.chest, k.rump, 0.45);
+  const bellyDir: Pt = [k.rump[0] - k.chest[0], k.rump[1] - k.chest[1]];
+  const bellyLen = Math.hypot(bellyDir[0], bellyDir[1]) || 1;
+  const bellyN: Pt = [-bellyDir[1] / bellyLen, bellyDir[0] / bellyLen];
+  const bellyEdge = add(belly, [-bellyN[0] * 50, -bellyN[1] * 50]);
+
+  const paw = (p: Pt, fill: string, seed: string, toes: boolean) => (
+    <g>
+      <Union shapes={[{t: 'ellipse', c: [p[0] + 12, p[1] - 1], rx: 34, ry: 17, rot: 0}]} fill={fill} seed={seed} />
+      {toes ? <Sketch d={`M${p[0] + 26} ${p[1] - 11}l0 16M${p[0] + 36} ${p[1] - 9}l0 14`} strokeWidth={2} seed={`${seed}-toes`} /> : null}
+    </g>
+  );
+
+  const tail = tailPath(tailBase, tailMid, tailTip);
+
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale * (flip ? -1 : 1)} ${scale})`}>
+      <ellipse cx={0} cy={4} rx={150 * (1 - air)} ry={12} fill="#000" opacity={0.07 * (1 - air)} />
+      <Hatch d="M-140 10L140 10M-110 16L110 16" opacity={0.5 * (1 - air)} />
+      <g
+        transform={`translate(${pose.bodyX} ${pose.bodyY}) rotate(${pose.lean}) scale(${Math.sign(pose.spin || 1) * Math.max(0.06, Math.abs(pose.spin))} ${pose.squash * breath}) rotate(${-34 * pose.reach} -70 -13) translate(0 ${-14 * Math.abs(Math.sin(pose.runPhase)) * pose.run}) rotate(${5 * Math.sin(pose.runPhase) * pose.run} 0 -100)`}
+      >
+        {/* far legs, in the haunch shade */}
+        <Union shapes={[{t: 'seg', pts: hind(-16, Math.PI + 0.7), w: 28}]} fill={LUCA.haunches} seed="side-hind-far" />
+        {paw(hindPaw(-16, Math.PI + 0.7), LUCA.haunches, 'side-hpaw-far', false)}
+        <Union shapes={[{t: 'seg', pts: front(-18, Math.PI * (1 - pose.run) + 0.7 * pose.run), w: 34}]} fill={LUCA.haunches} seed="side-front-far" />
+        {paw(frontPaw(-18, Math.PI * (1 - pose.run) + 0.7 * pose.run), LUCA.haunches, 'side-fpaw-far', false)}
+
+        {/* feathered tail */}
+        <g transform={`rotate(${pose.tailWag} ${tailBase[0]} ${tailBase[1]})`}>
+          <Sketch d={tail} fill={LUCA.coat} seed="side-tail" />
+          <Hatch d={`M${tailMid[0]} ${tailMid[1]}q8 -4 14 4M${lp(tailMid, tailTip, 0.5)[0]} ${lp(tailMid, tailTip, 0.5)[1]}q8 -4 14 4`} />
+        </g>
+
+        {/* near front leg, top tucked under the chest */}
+        <Union shapes={[{t: 'seg', pts: front(0), w: 36}]} fill={LUCA.coat} seed="side-front-near" />
+
+        {/* body: chest, rump and neck as one silhouette */}
+        <Union
+          shapes={[
+            {t: 'seg', pts: [k.chest, k.rump], w: 108},
+            {t: 'circle', c: k.chest, r: 58},
+            {t: 'circle', c: k.rump, r: 54},
+            {t: 'seg', pts: [neckBase, lp(neckBase, k.head, 0.7)], w: 70},
+          ]}
+          fill={LUCA.coat}
+          seed="side-body"
+        />
+        {/* fluffy chest bib and belly fringe */}
+        <Sketch
+          d={zigzag(add(k.chest, [40, -34]), add(k.chest, [30, 52]), 4, [12, 0])}
+          fill={LUCA.chest}
+          fillD={`${zigzag(add(k.chest, [40, -34]), add(k.chest, [30, 52]), 4, [12, 0])}L${k.chest[0] + 6} ${k.chest[1] + 40}L${k.chest[0] + 16} ${k.chest[1] - 30}Z`}
+          strokeWidth={2.2}
+          seed="side-bib"
+        />
+        <Sketch
+          d={zigzag(add(bellyEdge, [26, 0]), add(bellyEdge, [-34, 0]), 3, [bellyN[0] * -10, bellyN[1] * -10 + 6])}
+          strokeWidth={2.2}
+          seed="side-belly"
+        />
+        <Hatch
+          d={`M${k.rump[0] - 10} ${k.rump[1] - 36}q10 6 14 18M${k.rump[0] + 30} ${k.rump[1] - 40}q10 6 14 18M${k.chest[0] - 40} ${k.chest[1] - 40}q8 6 12 16`}
+        />
+
+        {/* near hind leg: big haunch with the lower leg folding under it */}
+        <Union shapes={[{t: 'seg', pts: hind(0), w: 30}]} fill={LUCA.coat} seed="side-hind-near" />
+        {paw(hindPaw(0, Math.PI), LUCA.muzzle, 'side-hpaw-near', true)}
+        <Union
+          shapes={[{t: 'ellipse', c: k.thigh, rx: 56, ry: 44, rot: k.thighRot + 18 * Math.sin(pose.runPhase + Math.PI) * pose.run}]}
+          fill={LUCA.haunches}
+          seed="side-thigh"
+        />
+        <Sketch
+          d={`M${k.thigh[0] - 44} ${k.thigh[1] + 18}l-8 8l9 2l-6 9l10 2`}
+          strokeWidth={2.2}
+          seed="side-thigh-fluff"
+        />
+        <Hatch d={`M${k.thigh[0] - 20} ${k.thigh[1] - 10}q8 8 4 20M${k.thigh[0]} ${k.thigh[1] - 14}q8 8 4 20M${k.thigh[0] + 18} ${k.thigh[1] - 6}q6 6 2 16`} />
+
+        {/* near front paw in front of everything */}
+        {paw(frontPaw(0, 0), LUCA.muzzle, 'side-fpaw-near', true)}
+
+        {/* bandana around the neck */}
+        <Sketch
+          d={`M${bandA[0] - 34} ${bandA[1] - 10}Q${bandA[0]} ${bandA[1] + 8} ${bandA[0] + 38} ${bandA[1] - 4}L${bandA[0] + 16} ${bandA[1] + 70}Z`}
+          fill={LUCA.bandana}
+          fillOpacity={1}
+          strokeWidth={2.4}
+          seed="side-bandana"
+        />
+        <path
+          d={`M${bandA[0] - 8} ${bandA[1] + 10}l6 4M${bandA[0] + 16} ${bandA[1] + 12}l6 4M${bandA[0] + 6} ${bandA[1] + 32}l6 4M${bandA[0] + 16} ${bandA[1] + 52}l4 5M${bandA[0] - 20} ${bandA[1] + 2}l6 3`}
+          stroke={LUCA.bandanaPattern}
+          strokeWidth={3}
+          strokeLinecap="round"
+        />
+
+        {/* head */}
+        <g transform={`translate(${k.head[0]} ${k.head[1]}) rotate(${headRot} -20 30)`}>
+          <SideHead pose={pose} />
+        </g>
+      </g>
+    </g>
+  );
+};
