@@ -14,7 +14,8 @@ export type ActionKind =
   | 'bark'
   | 'handoff'
   | 'chew'
-  | 'cheeksPuff';
+  | 'cheeksPuff'
+  | 'tipOver';
 
 export type Cue =
   | {kind: 'blink'; everySec: number | null}
@@ -56,6 +57,7 @@ export const parseCue = (raw: string): Cue | null => {
   }
   if (/cheek|puff|sigh/.test(all)) return {kind: 'cheeksPuff'};
   if (/tip back|tips back|look up/.test(all)) return {kind: 'headTipBack'};
+  if (/tip over|tips over|fall over|topple/.test(all)) return {kind: 'tipOver'};
   if (/tilt/.test(all)) {
     const size = /small|slight/.test(all) ? 'small' : /big|large/.test(all) ? 'big' : 'normal';
     return {kind: 'headTilt', size, slow: /slow/.test(all), eachCut: /each cut|every cut/.test(all)};
@@ -100,6 +102,7 @@ const ACTION_KINDS: ActionKind[] = [
   'handoff',
   'chew',
   'cheeksPuff',
+  'tipOver',
 ];
 
 /** Relative share of the scene each action takes when several are chained. */
@@ -113,6 +116,7 @@ const ACTION_WEIGHT: Record<ActionKind, number> = {
   handoff: 1,
   chew: 1.6,
   cheeksPuff: 1,
+  tipOver: 1.5,
 };
 
 export type TimedAction = {

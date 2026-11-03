@@ -129,7 +129,7 @@
       "durationSec": 6,
       "shot": "Medium. Still sitting, Luca slowly falls asleep and tips over onto his platypus.",
       "expression": "sleepy",
-      "animation": ["blink", "head:slow tilt", "body:slide right"],
+      "animation": ["blink", "head:slow tilt", "body:tip over"],
       "voiceover": "Five minutes of school. That's a lot of school.",
       "sfx": ["room tone"],
       "platypus": true

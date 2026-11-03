@@ -50,3 +50,8 @@ Animation cues (one string each, `target:action`):
 Body actions (jump, slide, spin, bark, play bow, sit drop, handoff, chew, cheeks puff) play one after another in the listed order. The other cues run across the whole scene. Unknown cues are skipped with a warning.
 
 `"type": "tipCard"` scenes render the clean recap card from `heading` and `steps`.
+`"type": "stepCard"` scenes show a bright "Step N" card with `step` and `text`, for step-by-step lessons.
+
+Story scenes can also set `"view": "side"` (profile Luca, which shows sitting and play bows clearly) and
+`"humanLine": "Sit!"` (a speech bubble from the off-screen human; it pops up at the treat handoff, or at the start).
+`body:tip over` makes Luca slowly topple over (for falling asleep).

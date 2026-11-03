@@ -5,12 +5,14 @@ import {
   Html5Audio,
   interpolate,
   Sequence,
+  spring,
   staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
 import {Platypus} from '../character/BodyParts';
 import {Luca} from '../character/Luca';
+import {LucaSide} from '../character/LucaSide';
 import {restPose, type LucaPose} from '../character/pose';
 import {PENCIL, Sketch} from '../character/sketch';
 import {buildTimeline, parseCues, type SceneTimeline, type TimedAction} from '../episode/cues';
@@ -22,6 +24,8 @@ import {Paper} from './Paper';
 
 /** Luca's size on the stage (sketch units -> stage pixels). */
 const S = 1.15;
+/** Side-view Luca's size on the stage. */
+const S2 = 1.5;
 const HUMAN_X = 500;
 const JUMP_H = 170;
 
@@ -92,7 +96,8 @@ const computeFrame = (
   );
   const seg = tl.segments[segIndex] ?? tl.segments[0];
   const location = seg.location;
-  const lx = setup.human ? 1120 : SPOT[location];
+  const side = scene.view === 'side';
+  const lx = setup.human ? 1120 : SPOT[location] + (side ? 100 : 0);
   const ly = GROUND_Y;
   const toward = setup.human ? -(lx - HUMAN_X - 300) / S : 0;
 
@@ -149,17 +154,30 @@ const computeFrame = (
   }
 
   // Treat and hand placement.
-  const headX = () => lx + pose.bodyX * S;
-  const headY = () => ly + (228 - 532 + pose.bodyY - 30 * pose.stand + 77 * pose.bow - 12 * pose.tipBack) * S;
+  // Side view faces left; its head sits forward of the body.
+  const sideHead = (): [number, number] => {
+    const hx = 94 + (108 - 94) * pose.stand;
+    const hy = -240 + 34 * pose.stand;
+    return [hx, hy];
+  };
+  const headX = () => (side ? lx - sideHead()[0] * S2 : lx + pose.bodyX * S);
+  const headY = () =>
+    side
+      ? ly + (sideHead()[1] + pose.bodyY) * S2
+      : ly + (228 - 532 + pose.bodyY - 30 * pose.stand + 77 * pose.bow - 12 * pose.tipBack) * S;
   let hand: FrameState['hand'] = null;
   if (setup.hand) {
     if (tl.has('trackTreat') || tl.has('headTipBack')) {
       const r = easeInOut(clamp((f - frames * 0.1) / (frames * 0.62)));
-      hand = {x: lx - 20 + 30 * r, y: ly - 300 - 250 * r, treat: setup.treat};
+      hand = side
+        ? {x: lx - 300 + 260 * r, y: ly - 300 - 230 * r, treat: setup.treat}
+        : {x: lx - 20 + 30 * r, y: ly - 300 - 250 * r, treat: setup.treat};
     } else if (setup.human) {
       hand = {x: HUMAN_X + 290, y: ly - 450 + 4 * Math.sin(f / 9), treat: setup.treat};
+    } else if (setup.framing === 'close') {
+      hand = {x: lx - 150, y: ly - 300 + 4 * Math.sin(f / 9), treat: setup.treat};
     } else {
-      hand = {x: lx - 170, y: ly - 470 + 4 * Math.sin(f / 9), treat: setup.treat};
+      hand = {x: (side ? lx - 330 : lx - 170), y: ly - 470 + 4 * Math.sin(f / 9), treat: setup.treat};
     }
   }
 
@@ -283,9 +301,9 @@ const computeFrame = (
         break;
       }
       case 'handoff': {
-        const mouthX = headX() + 20;
-        const mouthY = headY() + 70 * S;
-        const startX = lx - 170;
+        const mouthX = side ? headX() - 62 * S2 : headX() + 20;
+        const mouthY = side ? headY() + 46 * S2 : headY() + 70 * S;
+        const startX = side ? lx - 330 : lx - 170;
         const startY = ly - 500;
         if (done) {
           pose.treatInMouth = true;
@@ -301,6 +319,13 @@ const computeFrame = (
           pose.treatInMouth = true;
         }
         pose.look = {x: hand.x > headX() ? 0.3 : -0.5, y: 0.2};
+        if (side) pose.look = {x: 0.6, y: 0.3};
+        break;
+      }
+      case 'tipOver': {
+        const e = done ? 1 : easeIn(clamp(p / 0.8));
+        pose.lean = 72 * e;
+        if (!done && p > 0.8) pose.squash = 1 - 0.06 * Math.sin((Math.PI * (p - 0.8)) / 0.2);
         break;
       }
       case 'chew': {
@@ -335,17 +360,17 @@ const computeFrame = (
   // Before a handoff starts, the hand waits above with the treat.
   const handoff = tl.actions.find((a) => a.kind === 'handoff');
   if (handoff && f < handoff.start) {
-    hand = {x: lx - 170, y: ly - 500 + 5 * Math.sin(f / 8), treat: true};
+    hand = {x: side ? lx - 330 : lx - 170, y: ly - 500 + 5 * Math.sin(f / 8), treat: true};
   }
 
   if (extraWag) pose.tailWag += extraWag * Math.sin((2 * Math.PI * 4 * f) / fps);
 
   // Eyes follow the treat.
-  if (tl.has('trackTreat') && hand) {
+  if (hand && hand.treat && (tl.has('trackTreat') || !pose.look)) {
     const dx = hand.x - headX();
     const dy = hand.y - headY();
     const len = Math.hypot(dx, dy) || 1;
-    pose.look = {x: dx / len, y: dy / len};
+    pose.look = {x: (side ? -dx : dx) / len, y: dy / len};
   }
 
   // Scrabbling paws without a slide: just paddle the whole time.
@@ -500,6 +525,37 @@ const sfxTimes = (name: string, tl: SceneTimeline, frames: number, fps: number):
   return [0];
 };
 
+/** When the off-screen human speaks: as the treat is handed over, otherwise right at the start. */
+const humanLineFrame = (tl: SceneTimeline, frames: number) => {
+  const handoff = tl.actions.find((a) => a.kind === 'handoff');
+  if (handoff) return Math.round(handoff.start + (handoff.end - handoff.start) * 0.4);
+  return Math.round(frames * 0.04);
+};
+
+/** A speech bubble from the off-screen human, top left, popping in for about 1.5 seconds. */
+const HumanLine: React.FC<{text: string; at: number}> = ({text, at}) => {
+  const frame = useCurrentFrame();
+  const {fps} = useVideoConfig();
+  const local = frame - at;
+  if (local < 0 || local > 1.6 * fps) return null;
+  const pop = spring({frame: local, fps, config: {damping: 9, stiffness: 180}});
+  const out = interpolate(local, [1.35 * fps, 1.6 * fps], [1, 0], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+  return (
+    <AbsoluteFill>
+      <svg viewBox="0 0 1920 1080" width="100%" height="100%">
+        <g transform={`translate(330 170) scale(${pop}) rotate(-4)`} opacity={out}>
+          <path d="M-110 -40L-200 -150L-60 -64Z" fill="#FFFDF7" stroke={PENCIL} strokeWidth={7} strokeLinejoin="round" />
+          <ellipse cx={0} cy={0} rx={190} ry={86} fill="#FFFDF7" stroke={PENCIL} strokeWidth={7} />
+          <path d="M-96 -52L-150 -116L-50 -60Z" fill="#FFFDF7" />
+          <text x={0} y={28} textAnchor="middle" fontFamily={FONTS.hand} fontSize={96} fill="#FF7A59" stroke={PENCIL} strokeWidth={3} paintOrder="stroke">
+            {text}
+          </text>
+        </g>
+      </svg>
+    </AbsoluteFill>
+  );
+};
+
 const SceneSfx: React.FC<{
   names: string[];
   files: Record<string, string>;
@@ -538,9 +594,10 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
 
   const st = computeFrame(frame, durationInFrames, fps, scene, tl, setup);
   const push = tl.get('pushIn');
+  const side = scene.view === 'side';
   const cam = camera(
     setup.framing,
-    st.lx,
+    side ? st.lx - 130 : st.lx,
     setup.human,
     push?.amount ?? 0,
     clamp(frame / durationInFrames),
@@ -556,18 +613,25 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
           <g transform={cam}>
             <Background location={st.location} />
             {setup.platypus ? (
-              <g transform={`translate(${st.lx > 1200 ? 520 : 1560} ${GROUND_Y + 30})`}>
+              <g
+                transform={`translate(${tl.has('tipOver') ? st.lx + 430 : st.lx > 1200 ? 520 : 1560} ${GROUND_Y + 30})`}
+              >
                 <Platypus scale={1.2} rotate={-4} />
               </g>
             ) : null}
             {setup.human ? <HumanLegs x={HUMAN_X} ground={GROUND_Y + 10} /> : null}
-            <Luca pose={st.pose} x={st.lx} y={GROUND_Y} scale={S} />
+            {side ? (
+              <LucaSide pose={st.pose} x={st.lx} y={GROUND_Y} scale={S2} flip />
+            ) : (
+              <Luca pose={st.pose} x={st.lx} y={GROUND_Y} scale={S} />
+            )}
             {st.hand ? <Hand hx={st.hand.x} hy={st.hand.y} treat={st.hand.treat} /> : null}
             <Effects st={st} frame={frame} />
           </g>
         </svg>
       </AbsoluteFill>
       <Paper overlay />
+      {scene.humanLine ? <HumanLine text={scene.humanLine} at={humanLineFrame(tl, durationInFrames)} /> : null}
       <SceneSfx names={scene.sfx ?? []} files={sfx} tl={tl} frames={durationInFrames} fps={fps} />
     </AbsoluteFill>
   );

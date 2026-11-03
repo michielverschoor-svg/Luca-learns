@@ -30,6 +30,10 @@ export type StoryScene = {
   animation: string[];
   voiceover: string | null;
   sfx?: string[];
+  /** Camera side: 'front' (default) or 'side' profile, which shows sitting clearly. */
+  view?: 'front' | 'side';
+  /** A short line the (off-screen) human says, shown as a speech bubble. */
+  humanLine?: string;
   /** Optional overrides. When omitted they are inferred from `shot`. */
   framing?: Framing;
   location?: Location;
@@ -46,7 +50,16 @@ export type TipCardScene = {
   steps: string[];
 };
 
-export type Scene = StoryScene | TipCardScene;
+/** A short "Step N" card between scenes, for step-by-step lessons. */
+export type StepCardScene = {
+  id: string;
+  type: 'stepCard';
+  durationSec: number;
+  step: number;
+  text: string;
+};
+
+export type Scene = StoryScene | TipCardScene | StepCardScene;
 
 export type Episode = {
   id: string;
@@ -79,3 +92,4 @@ export const sfxSlug = (name: string) =>
     .replace(/^-|-$/g, '');
 
 export const isTipCard = (s: Scene): s is TipCardScene => s.type === 'tipCard';
+export const isStepCard = (s: Scene): s is StepCardScene => s.type === 'stepCard';
