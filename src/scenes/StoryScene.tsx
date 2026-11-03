@@ -804,6 +804,27 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
   const cam = {z, fx, fy, transform: `translate(${960 + sx} ${540 + sy}) scale(${z}) translate(${-fx} ${-fy})`};
   const fadeIn = interpolate(frame, [0, 4], [0, 1], {extrapolateRight: 'clamp'});
 
+  // Paw footfalls: a tap each time a paw comes down in the run cycle (side view gallop).
+  const footfalls = useMemo(() => {
+    if (!tl.has('zoomies')) return [] as {frame: number; volume: number}[];
+    const out: {frame: number; volume: number}[] = [];
+    const legs = [0, 0.7, Math.PI, Math.PI + 0.7];
+    let prev: FrameState | null = null;
+    for (let f = 0; f < durationInFrames; f++) {
+      const cur = computeFrame(f, durationInFrames, fps, scene, tl, setup);
+      if (prev && cur.pose.run > 0.4) {
+        const onScreen = cur.lx > -80 && cur.lx < 2000;
+        for (const ph of legs) {
+          const a = Math.floor((prev.pose.runPhase + ph - Math.PI / 2) / (2 * Math.PI));
+          const b = Math.floor((cur.pose.runPhase + ph - Math.PI / 2) / (2 * Math.PI));
+          if (b > a && onScreen) out.push({frame: f, volume: 0.32 + 0.12 * random(`ffv${f}${ph}`)});
+        }
+      }
+      prev = cur;
+    }
+    return out;
+  }, [tl, scene, setup, durationInFrames, fps]);
+
   const colorSeed = [...scene.id].reduce((sum, c) => sum + c.charCodeAt(0), 0);
 
   return (
@@ -849,11 +870,20 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
       ))}
       {scene.humanLine ? <HumanLine text={scene.humanLine} at={humanLineFrame(tl, durationInFrames)} /> : null}
       <SceneSfx names={scene.sfx ?? []} files={sfx} tl={tl} frames={durationInFrames} fps={fps} />
+      {/* paw footfalls while he runs: soft pads, alternating with nail clicks */}
+      {footfalls.map((ff, i) => {
+        const file = sfx[i % 3 === 1 ? 'paw-click' : 'paw-pad'];
+        return file ? (
+          <Sequence key={`ff${i}`} from={ff.frame} layout="none">
+            <Html5Audio src={staticFile(file)} volume={ff.volume} />
+          </Sequence>
+        ) : null;
+      })}
       {/* a soft pop whenever a thought bubble appears */}
       {sfx['bubble-pop']
         ? thoughts.map((t, i) => (
             <Sequence key={`pop${i}`} from={t.from} layout="none">
-              <Html5Audio src={staticFile(sfx['bubble-pop'])} volume={0.35} />
+              <Html5Audio src={staticFile(sfx['bubble-pop'])} volume={0.14} />
             </Sequence>
           ))
         : null}

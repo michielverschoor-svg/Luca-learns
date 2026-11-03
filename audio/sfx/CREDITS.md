@@ -24,6 +24,8 @@ All effects are free for commercial use. No attribution is required, but here is
 | twinkle | SFX Kit (wyzowl) | shimmers/shimmer-short-sparkle | CC0 |
 | chime | SFX Kit (wyzowl) | shimmers/shimmer-medium-bright | CC0 |
 | ding | SFX Kit (wyzowl) | tones/tone-ding-high | CC0 |
+| paw-pad | SFX Kit (wyzowl) | impacts/impact-light-soft (high-passed) | CC0 |
+| paw-click | SFX Kit (wyzowl) | impacts/impact-light-hard (pitched up) | CC0 |
 | bubble-pop, dramatic-sigh | Synthesized in this project | scripts/make_sfx.py | ours |
 
 - Meta Open Sound: https://github.com/facebookincubator/Meta-open-sound

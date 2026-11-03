@@ -191,7 +191,7 @@ export const MirrorShort: React.FC<{sfx?: Record<string, string>}> = ({sfx = {}}
         {sfx['bubble-pop']
           ? THOUGHTS.map((t, i) => (
               <Sequence key={`p${i}`} from={Math.round(t.from * fps)} layout="none">
-                <Html5Audio src={staticFile(sfx['bubble-pop'])} volume={0.4} />
+                <Html5Audio src={staticFile(sfx['bubble-pop'])} volume={0.16} />
               </Sequence>
             ))
           : null}

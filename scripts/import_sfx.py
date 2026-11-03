@@ -41,6 +41,9 @@ SOURCES = {
     "twinkle": ("kit", "shimmers/shimmer-short-sparkle.wav", None, -5, ""),
     "chime": ("kit", "shimmers/shimmer-medium-bright.wav", None, -5, ""),
     "ding": ("kit", "tones/tone-ding-high.wav", None, -5, ""),
+    # Paw footfalls on a wooden floor: soft pad, and a small nail click.
+    "paw-pad": ("kit", "impacts/impact-light-soft.wav", None, -8, "highpass=f=180"),
+    "paw-click": ("kit", "impacts/impact-light-hard.wav", None, -12, "asetrate=44100*1.25,aresample=44100"),
 }
 
 
