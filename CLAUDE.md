@@ -49,7 +49,7 @@ Palette:
 2. The problem, with Luca's inner monologue.
 3. The training attempt: it half-works or fails.
 4. The win, usually for selfish reasons (treats).
-5. Tip card (about 25 sec): a clean recap of the real method.
+5. Tip card (about 12 sec): a clean recap of the real method.
 
 Target 3 to 5 minutes per episode.
 

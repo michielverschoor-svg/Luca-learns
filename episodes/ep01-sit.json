@@ -10,14 +10,6 @@
   "background": "paper",
   "scenes": [
     {
-      "id": "title",
-      "type": "titleCard",
-      "durationSec": 4,
-      "series": "Luca Learns",
-      "episodeLabel": "Episode 1",
-      "title": "Sit!"
-    },
-    {
       "id": "s01",
       "durationSec": 6,
       "shot": "Wide. Luca zooms around the room, spins after his own tail and crashes into his platypus.",
@@ -69,6 +61,14 @@
         "sad trombone (short)"
       ],
       "treat": true
+    },
+    {
+      "id": "title",
+      "type": "titleCard",
+      "durationSec": 4,
+      "series": "Luca Learns",
+      "episodeLabel": "Episode 1",
+      "title": "Sit!"
     },
     {
       "id": "step1",
@@ -232,7 +232,7 @@
     {
       "id": "tip",
       "type": "tipCard",
-      "durationSec": 25,
+      "durationSec": 12,
       "heading": "How to teach Sit",
       "steps": [
         "Hold a treat at his nose, then move it slowly up and back over his head.",

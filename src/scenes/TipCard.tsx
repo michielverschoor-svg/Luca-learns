@@ -18,7 +18,7 @@ export const TipCard: React.FC<{scene: TipCardScene; episodeLabel: string}> = ({
   const {fps} = useVideoConfig();
   const t = frame / fps;
   const cardIn = spring({frame, fps, config: {damping: 16}});
-  const stepAt = (i: number) => Math.round((1.2 + i * 1.5) * fps);
+  const stepAt = (i: number) => Math.round((0.8 + i * 1.1) * fps);
 
   const blinkPhase = frame % Math.round(3.5 * fps);
   const pose = {
