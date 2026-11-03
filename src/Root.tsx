@@ -3,6 +3,7 @@ import {Composition, getStaticFiles} from 'remotion';
 import {CharacterSheet} from './CharacterSheet';
 import {SideViewSheet} from './SideViewSheet';
 import {Thumbnail, thumbnailDefaults} from './Thumbnail';
+import {MIRROR_SHORT_END_SEC, MirrorShort} from './shorts/MirrorShort';
 import {Episode, episodeFrames} from './Episode';
 import type {Episode as EpisodeData, EpisodeProps} from './types';
 import ep01 from '../episodes/ep01-sit.json';
@@ -61,6 +62,18 @@ export const RemotionRoot: React.FC = () => (
       fps={30}
       width={1920}
       height={1080}
+    />
+    <Composition
+      id="ShortMirror"
+      component={MirrorShort}
+      defaultProps={{sfx: {}}}
+      durationInFrames={Math.round((15 + MIRROR_SHORT_END_SEC) * 30)}
+      fps={30}
+      width={1080}
+      height={1920}
+      calculateMetadata={({props}) => ({
+        props: {...props, sfx: props.sfx && Object.keys(props.sfx).length ? props.sfx : discoverAudio(defaultProps.episode, 'sfx')},
+      })}
     />
     <Composition
       id="Thumbnail"

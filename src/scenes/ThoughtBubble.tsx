@@ -32,9 +32,15 @@ const measure = (text: string) => {
 
 type Props = {
   text: string;
-  /** Luca's head on screen (1920x1080 coordinates) and its radius on screen. */
+  /** Luca's head on screen (canvas coordinates) and its radius on screen. */
   head: {x: number; y: number; r: number};
   color: string;
+  /** Canvas size; defaults to 1920x1080 (landscape episodes). */
+  canvas?: {w: number; h: number};
+  /** Extra shift of the cloud (e.g. to keep it off something important). */
+  offset?: {x: number; y: number};
+  /** Force the cloud to one side of his head. */
+  side?: 'left' | 'right';
   /** A point on screen the cloud should not cover (the treat in the hand). */
   avoid?: {x: number; y: number} | null;
   /** Frames (relative to the current sequence) the bubble is shown. */
@@ -46,7 +52,9 @@ type Props = {
  * Luca's inner monologue as a scalloped thought cloud beside his head, with
  * three little bubbles trailing back to him.
  */
-export const ThoughtBubble: React.FC<Props> = ({text, head, color, from, to, avoid}) => {
+export const ThoughtBubble: React.FC<Props> = ({text, head, color, from, to, avoid, canvas = {w: 1920, h: 1080}, side, offset = {x: 0, y: 0}}) => {
+  const W = canvas.w;
+  const H = canvas.h;
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   if (frame < from || frame > to) return null;
@@ -58,14 +66,14 @@ export const ThoughtBubble: React.FC<Props> = ({text, head, color, from, to, avo
   const {w, h} = measure(text);
   // Put the cloud on the roomier side of his head, a little above it.
   const place = (right: boolean) => ({
-    cx: Math.min(1900 - w / 2, Math.max(20 + w / 2, head.x + (right ? 1 : -1) * (head.r + w / 2 + 30))),
-    cy: Math.min(1060 - h / 2, Math.max(20 + h / 2, head.y - head.r * 0.9 - h * 0.25)),
+    cx: Math.min(W - 20 - w / 2, Math.max(20 + w / 2, head.x + (right ? 1 : -1) * (head.r + w / 2 + 30) + offset.x)),
+    cy: Math.min(H - 20 - h / 2, Math.max(20 + h / 2, head.y - head.r * 0.9 - h * 0.25 + offset.y)),
   });
   const covers = (p: {cx: number; cy: number}) =>
     !!avoid && Math.abs(avoid.x - p.cx) < w / 2 + 70 && Math.abs(avoid.y - p.cy) < h / 2 + 90;
-  let spot = place(head.x < 960);
+  let spot = place(side ? side === 'right' : head.x < W / 2);
   if (covers(spot)) {
-    const other = place(head.x >= 960);
+    const other = place(!(side ? side === 'right' : head.x < W / 2));
     if (!covers(other)) spot = other;
   }
   const cx = spot.cx;
@@ -99,7 +107,7 @@ export const ThoughtBubble: React.FC<Props> = ({text, head, color, from, to, avo
   const origin = `${head.x} ${head.y}`;
   return (
     <svg
-      viewBox="0 0 1920 1080"
+      viewBox={`0 0 ${W} ${H}`}
       width="100%"
       height="100%"
       style={{position: 'absolute', inset: 0, overflow: 'visible'}}

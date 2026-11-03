@@ -61,3 +61,7 @@ Story scenes can also set `"view": "side"` (profile Luca, which shows sitting an
 ## Thumbnail
 
 `npm run thumbnail -- ep01` renders a 1280x720 PNG: Luca's face up close, a floating treat, big outlined text and a "Luca Learns" badge. Set it per episode with an optional `"thumbnail"` object in the JSON (`text`, `expression`, `color`, `badge`), or try ideas on the command line: `npm run thumbnail -- ep01 --text="NO TREAT?!" --expression=betrayed --color=#F2549B`. Keep the text to 1 to 3 words.
+
+## Shorts
+
+`npm run short:mirror` renders a vertical 1080x1920 YouTube Short (`out/short-mirror.mp4`) from the AI-generated clip in `assets/clips/mirror-ai.mp4`: Luca's thoughts as thought bubbles over the clip, then a "More Luca every week!" end card. The clip keeps its own ambient sound. Mark it as altered or synthetic content when uploading to YouTube, since the clip is AI-generated.
