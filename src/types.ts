@@ -28,7 +28,8 @@ export type StoryScene = {
   shot: string;
   expression: Expression;
   animation: string[];
-  voiceover: string | null;
+  /** Luca's thought. With cuts, a list gives each location its own bubble. */
+  voiceover: string | string[] | null;
   sfx?: string[];
   /** Camera side: 'front' (default) or 'side' profile, which shows sitting clearly. */
   view?: 'front' | 'side';

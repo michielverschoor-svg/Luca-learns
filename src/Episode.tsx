@@ -1,7 +1,6 @@
 import React from 'react';
 import {AbsoluteFill, Html5Audio, Series, staticFile} from 'remotion';
 import {StoryScene} from './scenes/StoryScene';
-import {Subtitles} from './scenes/Subtitles';
 import {StepCard} from './scenes/StepCard';
 import {TipCard} from './scenes/TipCard';
 import {isStepCard, isTipCard, type Episode as EpisodeData, type EpisodeProps, type Scene} from './types';
@@ -36,10 +35,7 @@ export const Episode: React.FC<EpisodeProps> = ({episode, audio, audioDurations,
           ) : isStepCard(scene) ? (
             <StepCard scene={scene} />
           ) : (
-            <>
-              <StoryScene scene={scene} sfx={sfx ?? {}} />
-              {scene.voiceover ? <Subtitles text={scene.voiceover} /> : null}
-            </>
+            <StoryScene scene={scene} sfx={sfx ?? {}} />
           )}
           {audio[scene.id] ? <Html5Audio src={staticFile(audio[scene.id])} /> : null}
         </Series.Sequence>

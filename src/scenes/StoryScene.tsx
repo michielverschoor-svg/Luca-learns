@@ -21,6 +21,7 @@ import {sfxSlug, type Framing, type Location, type StoryScene as StorySceneData}
 import {Background, GROUND_Y} from './Backgrounds';
 import {Hand, HumanLegs} from './Human';
 import {Paper} from './Paper';
+import {BUBBLE_COLORS, ThoughtBubble} from './ThoughtBubble';
 
 /** Luca's size on the stage (sketch units -> stage pixels). */
 const S = 1.15;
@@ -79,6 +80,8 @@ type FrameState = {
   dust: number;
   crumbs: number;
   zoomBump: number;
+  /** Luca's head on the stage, for placing thought bubbles. */
+  head: {x: number; y: number; r: number};
 };
 
 const computeFrame = (
@@ -394,6 +397,7 @@ const computeFrame = (
     dust,
     crumbs,
     zoomBump,
+    head: {x: headX(), y: headY(), r: side ? 80 * S2 : 98 * S},
   };
 };
 
@@ -429,7 +433,7 @@ const camera = (
   z *= 1 + bump;
   fx = clamp(fx, 960 / z, 1920 - 960 / z);
   fy = clamp(fy, 540 / z, 1080 - 540 / z);
-  return `translate(960 540) scale(${z}) translate(${-fx} ${-fy})`;
+  return {z, fx, fy, transform: `translate(960 540) scale(${z}) translate(${-fx} ${-fy})`};
 };
 
 const Effects: React.FC<{st: FrameState; frame: number}> = ({st, frame}) => {
@@ -605,12 +609,25 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
   );
   const fadeIn = interpolate(frame, [0, 4], [0, 1], {extrapolateRight: 'clamp'});
 
+  // Luca's thoughts: one bubble for the scene, or one per location when the scene cuts.
+  const lines = scene.voiceover == null ? [] : Array.isArray(scene.voiceover) ? scene.voiceover : [scene.voiceover];
+  const thoughts =
+    lines.length <= 1
+      ? lines.map((text) => ({text, from: Math.round(0.2 * fps), to: durationInFrames - 2}))
+      : lines.map((text, i) => {
+          const seg = tl.segments.length === lines.length ? tl.segments[i] : null;
+          const start = seg ? seg.start : Math.round((durationInFrames * i) / lines.length);
+          const end = seg ? seg.end : Math.round((durationInFrames * (i + 1)) / lines.length);
+          return {text, from: start + 4, to: end - 2};
+        });
+  const colorSeed = [...scene.id].reduce((sum, c) => sum + c.charCodeAt(0), 0);
+
   return (
     <AbsoluteFill>
       <Paper />
       <AbsoluteFill style={{opacity: fadeIn}}>
         <svg viewBox="0 0 1920 1080" width="100%" height="100%">
-          <g transform={cam}>
+          <g transform={cam.transform}>
             <Background location={st.location} />
             {setup.platypus ? (
               <g
@@ -631,6 +648,20 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
         </svg>
       </AbsoluteFill>
       <Paper overlay />
+      {thoughts.map((t, i) => (
+        <ThoughtBubble
+          key={i}
+          text={t.text}
+          from={t.from}
+          to={t.to}
+          color={BUBBLE_COLORS[(colorSeed + i) % BUBBLE_COLORS.length]}
+          head={{
+            x: 960 + (st.head.x - cam.fx) * cam.z,
+            y: 540 + (st.head.y - cam.fy) * cam.z,
+            r: st.head.r * cam.z,
+          }}
+        />
+      ))}
       {scene.humanLine ? <HumanLine text={scene.humanLine} at={humanLineFrame(tl, durationInFrames)} /> : null}
       <SceneSfx names={scene.sfx ?? []} files={sfx} tl={tl} frames={durationInFrames} fps={fps} />
     </AbsoluteFill>

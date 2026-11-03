@@ -28,7 +28,7 @@ Remotion downloads its own headless Chrome on first render. To use one you alrea
 
 ## Scene JSON
 
-Story scenes use `expression`, `animation`, `voiceover`, `shot` and `durationSec`. Framing (wide, medium, close-up, low angle), the human's legs, the hand and treat, and the platypus are inferred from the `shot` text. You can set them explicitly with optional fields: `framing` (`wide|medium|close|low`), `location` (`room|kitchen|bathroom|fridge`), `human`, `treat`, `platypus` (booleans).
+Story scenes use `expression`, `animation`, `voiceover`, `shot` and `durationSec`. The `voiceover` is Luca's thought and appears as a colourful thought bubble beside his head; in a scene with `cut:` cues it can be a list with one line per location. Framing (wide, medium, close-up, low angle), the human's legs, the hand and treat, and the platypus are inferred from the `shot` text. You can set them explicitly with optional fields: `framing` (`wide|medium|close|low`), `location` (`room|kitchen|bathroom|fridge`), `human`, `treat`, `platypus` (booleans).
 
 Expressions: `curious`, `smug`, `betrayed`, `treat-hypnotized`, `guilty`, `sleepy`, `surprised`.
 

@@ -64,6 +64,8 @@ def main() -> None:
 
     for scene in episode["scenes"]:
         line = scene.get("voiceover")
+        if isinstance(line, list):
+            line = " ".join(line)
         if not line:
             continue
         target = out_dir / f"{scene['id']}.mp3"

@@ -74,7 +74,7 @@ const main = async () => {
   console.log(
     withAudio.length
       ? `Voiceover found for: ${withAudio.join(', ')}`
-      : `No voiceover clips in audio/${episode.id}/, rendering silent with subtitles.`,
+      : `No voiceover clips in audio/${episode.id}/, rendering silent with thought bubbles.`,
   );
 
   // Sound effects: audio/sfx/<name>.mp3 (make them with scripts/make_sfx.py).

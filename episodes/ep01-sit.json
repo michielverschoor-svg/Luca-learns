@@ -103,7 +103,7 @@
       "shot": "Quick cuts. Luca sits in the kitchen, the bathroom and in front of the fridge.",
       "expression": "smug",
       "animation": ["cut:kitchen", "cut:bathroom", "cut:fridge", "head:tilt each cut"],
-      "voiceover": "Kitchen: sit. Snack! Bathroom: sit. Snack! Fridge: sit... I'll wait.",
+      "voiceover": ["Kitchen: sit. Snack!", "Bathroom: sit. Snack!", "Fridge: sit... I'll wait."],
       "sfx": ["pop cut x3"]
     },
     {
