@@ -2,10 +2,10 @@ import React from 'react';
 import {TreatShape} from '../character/HeadParts';
 import {Hatch, Sketch} from '../character/sketch';
 
-const DENIM = '#8B9BB3';
-const SLEEVE = '#A9B98F';
+const DENIM = '#5B8DEF';
+const SLEEVE = '#FFD23F';
 const SKIN = '#F1C9A5';
-const SHOE = '#F4EFE4';
+const SHOE = '#FFFDF7';
 
 /**
  * A human from the hips down, standing on the floor, facing right toward Luca.
@@ -21,7 +21,7 @@ export const HumanLegs: React.FC<{x: number; ground: number}> = ({x, ground}) =>
         <Sketch d={d} fill={DENIM} seed={seed} />
         <Hatch
           d={`M${l - 40} ${ground - 400}q10 10 2 24M${l - 36} ${ground - 360}q10 10 2 24M${l + 30} ${ground - 200}q-10 10 -2 24`}
-          color="#4E5E78"
+          color="#2F57B0"
         />
         <Sketch d={`M${l - 50} ${ground - 70}L${l + 52} ${ground - 70}`} strokeWidth={2} seed={`${seed}-hem`} />
         {/* sneaker */}
@@ -31,6 +31,7 @@ export const HumanLegs: React.FC<{x: number; ground: number}> = ({x, ground}) =>
           detail={`M${l - 60} ${ground - 14}L${l + 128} ${ground - 14}M${l + 30} ${ground - 58}l12 14M${l + 50} ${ground - 54}l12 14`}
           seed={`${seed}-shoe`}
         />
+        <path d={`M${l - 58} ${ground - 8}L${l + 126} ${ground - 8}`} stroke="#F25555" strokeWidth={8} />
       </g>
     );
   };

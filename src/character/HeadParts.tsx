@@ -63,7 +63,7 @@ const Eye: React.FC<{
   if (face.eyeStyle === 'sclera') {
     eye = (
       <g>
-        <ellipse cx={cx} cy={cy} rx={r} ry={r + 1} fill={LUCA.sclera} stroke={PENCIL} strokeWidth={2.2} />
+        <ellipse cx={cx} cy={cy} rx={r} ry={r + 1} fill={LUCA.sclera} stroke={PENCIL} strokeWidth={3.6} />
         <circle cx={cx + look.x * 5} cy={cy + look.y * 5} r={5.5} fill={LUCA.eyes} />
         <circle cx={cx + look.x * 5 + 1.8} cy={cy + look.y * 5 - 2} r={1.6} fill={LUCA.sclera} />
       </g>
@@ -94,7 +94,7 @@ const Eye: React.FC<{
         d={`M${cx - r} ${cy}Q${cx} ${cy + r * 0.55} ${cx + r} ${cy}`}
         fill="none"
         stroke={PENCIL}
-        strokeWidth={2.8}
+        strokeWidth={4.5}
         strokeLinecap="round"
       />
     );
@@ -114,7 +114,7 @@ const Eye: React.FC<{
         d={`M${cx - r - 2} ${lidY - lean}Q${cx} ${lidY + 3} ${cx + r + 2} ${lidY + lean}`}
         fill="none"
         stroke={PENCIL}
-        strokeWidth={2.4}
+        strokeWidth={4}
         strokeLinecap="round"
       />
     </g>
@@ -209,7 +209,7 @@ export const NoseMouth: React.FC<{face: FaceConfig; pose: LucaPose}> = ({face, p
         <Sketch d="M-46 20Q-48 -6 0 -8Q48 -6 46 20Q46 70 0 84Q-46 70 -46 20Z" fill={LUCA.muzzle} seed="muzzle" />
       </g>
       <path d={NOSE} fill={LUCA.eyes} />
-      <path d={NOSE} fill="none" stroke={PENCIL} strokeWidth={2.6} strokeLinejoin="round" />
+      <path d={NOSE} fill="none" stroke={PENCIL} strokeWidth={4} strokeLinejoin="round" />
       <circle cx={-8} cy={17} r={3} fill={LUCA.sclera} opacity={0.8} />
       {mouth}
       {t > 0.02 ? (

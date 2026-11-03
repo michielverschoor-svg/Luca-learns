@@ -418,22 +418,24 @@ const Effects: React.FC<{st: FrameState; frame: number}> = ({st, frame}) => {
           <Sketch
             d={`M${bx - 260} ${by - 260}Q${bx} ${by - 340} ${bx + 260} ${by - 250}M${bx - 280} ${by - 120}Q${bx} ${by - 40} ${bx + 270} ${by - 130}M${bx + 230} ${by - 330}l40 10l-20 30`}
             strokeWidth={3}
+            stroke="#5CC8C0"
             seed={`whoosh-${Math.floor(frame / 3)}`}
           />
         </g>
       ) : null}
       {st.woof > 0.25 ? (
         <g transform={`translate(${bx + 230} ${by - 470}) rotate(-10) scale(${0.7 + 0.4 * st.woof})`}>
-          <Sketch d="M-120 -40l-30 -20M-120 0l-40 0M-120 40l-30 20" strokeWidth={3} seed="woof-lines" />
+          <Sketch d="M-130 -40l-30 -20M-130 0l-40 0M-130 40l-30 20" strokeWidth={3} stroke="#FF7A59" seed="woof-lines" />
           <text
             x={0}
             y={20}
             textAnchor="middle"
             fontFamily={FONTS.hand}
-            fontSize={84}
-            fill="#C8342B"
+            fontSize={96}
+            fill="#FFD23F"
             stroke={PENCIL}
-            strokeWidth={2}
+            strokeWidth={5}
+            paintOrder="stroke"
           >
             WOOF!
           </text>
@@ -565,6 +567,7 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
           </g>
         </svg>
       </AbsoluteFill>
+      <Paper overlay />
       <SceneSfx names={scene.sfx ?? []} files={sfx} tl={tl} frames={durationInFrames} fps={fps} />
     </AbsoluteFill>
   );

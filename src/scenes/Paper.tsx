@@ -3,7 +3,7 @@ import {AbsoluteFill, random} from 'remotion';
 import {PAPER} from '../character/sketch';
 
 /** Warm paper: flat colour, a soft vignette and fixed pencil-dust speckles. */
-export const Paper: React.FC = () => {
+export const Paper: React.FC<{overlay?: boolean}> = ({overlay}) => {
   const specks = useMemo(
     () =>
       new Array(260).fill(0).map((_, i) => ({
@@ -16,7 +16,7 @@ export const Paper: React.FC = () => {
     [],
   );
   return (
-    <AbsoluteFill style={{backgroundColor: PAPER}}>
+    <AbsoluteFill style={{backgroundColor: overlay ? undefined : PAPER, pointerEvents: 'none'}}>
       <svg viewBox="0 0 1920 1080" width="100%" height="100%" style={{position: 'absolute'}}>
         <defs>
           <radialGradient id="paper-vignette" cx="50%" cy="48%" r="75%">
@@ -37,7 +37,7 @@ export const Paper: React.FC = () => {
             strokeLinecap="round"
           />
         ))}
-        <rect x={0} y={0} width={1920} height={1080} fill="url(#paper-vignette)" />
+        <rect x={0} y={0} width={1920} height={1080} fill="url(#paper-vignette)" opacity={overlay ? 0.35 : 1} />
       </svg>
     </AbsoluteFill>
   );

@@ -72,10 +72,10 @@ const Union: React.FC<{shapes: Shape[]; fill: string; seed: string}> = ({shapes,
   return (
     <g>
       {shapes.map((s, i) => (
-        <ShapeEl key={`g${i}`} s={s} grow={2.6} color={PENCIL} offset={ghost} opacity={0.35} />
+        <ShapeEl key={`g${i}`} s={s} grow={4.4} color={PENCIL} offset={ghost} opacity={0.35} />
       ))}
       {shapes.map((s, i) => (
-        <ShapeEl key={`o${i}`} s={s} grow={2.6} color={PENCIL} />
+        <ShapeEl key={`o${i}`} s={s} grow={4.4} color={PENCIL} />
       ))}
       {shapes.map((s, i) => (
         <ShapeEl key={`f${i}`} s={s} grow={0} color={fill} />
@@ -292,7 +292,7 @@ export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
             d={`M${tailBase[0]} ${tailBase[1]}Q${tailMid[0]} ${tailMid[1]} ${tailTip[0]} ${tailTip[1]}`}
             fill="none"
             stroke={PENCIL}
-            strokeWidth={30}
+            strokeWidth={33}
             strokeLinecap="round"
           />
           <path

@@ -2,8 +2,11 @@ import React, {createContext, useContext} from 'react';
 import {random, useCurrentFrame} from 'remotion';
 
 export const PENCIL = '#3A2A20';
-export const HATCH = '#8A5A24';
+export const HATCH = '#B8742A';
 export const PAPER = '#F6EEDC';
+
+/** Global line weight multiplier: thicker, bolder cartoon lines. */
+export const LINE = 1.75;
 
 /** Frames per "line boil" step. 0 disables the boil (perfectly still lines). */
 export const BoilContext = createContext(4);
@@ -66,7 +69,7 @@ export const Sketch: React.FC<SketchProps> = ({
         d={lines}
         fill="none"
         stroke={stroke}
-        strokeWidth={strokeWidth}
+        strokeWidth={strokeWidth * LINE}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -74,7 +77,7 @@ export const Sketch: React.FC<SketchProps> = ({
         d={lines}
         fill="none"
         stroke={stroke}
-        strokeWidth={strokeWidth * 0.38}
+        strokeWidth={strokeWidth * 0.5}
         opacity={0.5}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -87,9 +90,9 @@ export const Sketch: React.FC<SketchProps> = ({
 /** Light brown pencil hatching. */
 export const Hatch: React.FC<{d: string; opacity?: number; color?: string; width?: number}> = ({
   d,
-  opacity = 0.65,
+  opacity = 0.6,
   color = HATCH,
-  width = 1.2,
+  width = 1.7,
 }) => (
   <path
     d={d}
