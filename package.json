@@ -6,7 +6,8 @@
   "scripts": {
     "studio": "remotion studio",
     "render": "tsx scripts/render.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "thumbnail": "tsx scripts/thumbnail.ts"
   },
   "dependencies": {
     "@fontsource/nunito": "5.3.0",

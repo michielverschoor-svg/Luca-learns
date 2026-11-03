@@ -82,6 +82,8 @@ export type Episode = {
   fps: number;
   resolution: [number, number];
   background?: string;
+  /** Optional thumbnail settings for `npm run thumbnail` (text, expression, color, badge). */
+  thumbnail?: {text?: string; expression?: Expression; color?: string; badge?: string};
   scenes: Scene[];
 };
 

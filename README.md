@@ -7,6 +7,7 @@ Animated dog-training episodes, rendered with [Remotion](https://www.remotion.de
 ```bash
 npm install
 npm run render -- ep01        # -> out/ep01.mp4 (1920x1080, h264)
+npm run thumbnail -- ep01     # -> out/ep01-thumbnail.png (1280x720 YouTube thumbnail)
 npm run studio                # live preview (Episode + CharacterSheet compositions)
 ```
 
@@ -56,3 +57,7 @@ Body actions (jump, slide, spin, bark, play bow, sit drop, handoff, chew, cheeks
 Story scenes can also set `"view": "side"` (profile Luca, which shows sitting and play bows clearly) and
 `"humanLine": "Sit!"` (a speech bubble from the off-screen human; it pops up at the treat handoff, or at the start).
 `body:tip over` makes Luca slowly topple over (for falling asleep).
+
+## Thumbnail
+
+`npm run thumbnail -- ep01` renders a 1280x720 PNG: Luca's face up close, a floating treat, big outlined text and a "Luca Learns" badge. Set it per episode with an optional `"thumbnail"` object in the JSON (`text`, `expression`, `color`, `badge`), or try ideas on the command line: `npm run thumbnail -- ep01 --text="NO TREAT?!" --expression=betrayed --color=#F2549B`. Keep the text to 1 to 3 words.

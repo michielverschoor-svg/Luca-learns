@@ -8,6 +8,12 @@
     1080
   ],
   "background": "paper",
+  "thumbnail": {
+    "text": "SIT?!",
+    "expression": "treat-hypnotized",
+    "color": "#2FA3E6",
+    "badge": "Luca Learns"
+  },
   "scenes": [
     {
       "id": "s01",
