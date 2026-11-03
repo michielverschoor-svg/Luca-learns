@@ -335,9 +335,18 @@ def write_mp3(name, x):
         )
 
 
+# These stay synthesized. Everything else now comes from CC0 sound libraries
+# (scripts/import_sfx.py); pass --all to regenerate the old synthesized versions.
+SYNTH_ONLY = {"bubble-pop", "dramatic-sigh"}
+
+
 def main():
+    import sys
+    every = "--all" in sys.argv
     OUT.mkdir(parents=True, exist_ok=True)
     for name, fn in EFFECTS.items():
+        if not every and name not in SYNTH_ONLY:
+            continue
         write_mp3(name, fn())
         print(f"  wrote audio/sfx/{name}.mp3")
 
