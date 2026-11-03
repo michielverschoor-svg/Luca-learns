@@ -1,0 +1,95 @@
+{
+  "id": "ep01",
+  "title": "Luca Negotiates (Sit)",
+  "youtubeTitle": "Luca vs. The Treat: Teaching Sit (Puppy Training Tips)",
+  "fps": 30,
+  "resolution": [1920, 1080],
+  "background": "paper",
+  "scenes": [
+    {
+      "id": "s01",
+      "durationSec": 6,
+      "shot": "Wide. Luca sits facing a human's legs (shoulders down only) holding a treat. Slow push-in on his face.",
+      "expression": "curious",
+      "animation": ["blink:every 3s", "tail:slow wag", "camera:push-in 10%"],
+      "voiceover": "The human is holding a snack. Clearly it's a gift.",
+      "sfx": ["room tone"]
+    },
+    {
+      "id": "s02",
+      "durationSec": 5,
+      "shot": "Close-up. Luca lets out a huge dramatic sigh, cheeks puffing.",
+      "expression": "smug",
+      "animation": ["cheeks:puff then deflate", "head:small tilt"],
+      "voiceover": "Why is she not giving it?",
+      "sfx": ["dramatic sigh"]
+    },
+    {
+      "id": "s03",
+      "durationSec": 6,
+      "shot": "Medium. Luca jumps at her leg, then slides down, paws scrabbling. Nothing happens.",
+      "expression": "betrayed",
+      "animation": ["body:jump", "body:slide down", "paws:scrabble"],
+      "voiceover": null,
+      "sfx": ["thump", "scrabble", "sad trombone (short)"]
+    },
+    {
+      "id": "s04",
+      "durationSec": 7,
+      "shot": "Medium. Luca spins, barks, does a play bow. The treat does not move.",
+      "expression": "smug",
+      "animation": ["body:spin", "mouth:bark", "body:play-bow"],
+      "voiceover": "I've offered my best moves. The human seems unimpressed.",
+      "sfx": ["bark", "whoosh"]
+    },
+    {
+      "id": "s05",
+      "durationSec": 6,
+      "shot": "Close-up. The treat rises slowly over his head. His eyes follow and his head tips back.",
+      "expression": "treat-hypnotized",
+      "animation": ["eyes:track treat", "head:tip back", "tongue:out"],
+      "voiceover": null,
+      "sfx": ["rising sparkle"]
+    },
+    {
+      "id": "s06",
+      "durationSec": 6,
+      "shot": "Low angle. His bottom drops to the floor by accident. The hand gives him the treat.",
+      "expression": "surprised",
+      "animation": ["body:sit-drop", "treat:handoff", "chew"],
+      "voiceover": "Wait. The floor... pays?",
+      "sfx": ["plop", "crunch"]
+    },
+    {
+      "id": "s07",
+      "durationSec": 8,
+      "shot": "Quick cuts. Luca sits smugly in the kitchen, the bathroom, and in front of the fridge, waiting each time.",
+      "expression": "smug",
+      "animation": ["cut:kitchen", "cut:bathroom", "cut:fridge", "head:tilt each cut"],
+      "voiceover": "I'm training the human now.",
+      "sfx": ["pop cut x3"]
+    },
+    {
+      "id": "s08",
+      "durationSec": 5,
+      "shot": "Close-up. Smug face, slow head tilt toward camera.",
+      "expression": "smug",
+      "animation": ["head:slow tilt", "blink"],
+      "voiceover": "Sit means snack.",
+      "sfx": ["twinkle"]
+    },
+    {
+      "id": "tip",
+      "type": "tipCard",
+      "durationSec": 25,
+      "heading": "How to teach Sit",
+      "steps": [
+        "Hold a treat at his nose, then move it slowly up and back over his head.",
+        "The moment his bottom touches the floor, say \"Yes!\" and give the treat.",
+        "After a few reps, say \"sit\" just before the lure.",
+        "Keep sessions to 3 to 5 minutes. Puppies tire quickly.",
+        "Practice in different rooms so he learns it everywhere."
+      ]
+    }
+  ]
+}
