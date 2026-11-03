@@ -60,7 +60,20 @@ export type StepCardScene = {
   text: string;
 };
 
-export type Scene = StoryScene | TipCardScene | StepCardScene;
+/** Opening title: series name, episode label and title. */
+export type TitleCardScene = {
+  id: string;
+  type: 'titleCard';
+  durationSec: number;
+  /** Defaults to "Luca Learns". */
+  series?: string;
+  /** Small text on the ribbon, e.g. "Episode 1". */
+  episodeLabel?: string;
+  /** Big text on the ribbon, e.g. "Sit!". */
+  title: string;
+};
+
+export type Scene = StoryScene | TipCardScene | StepCardScene | TitleCardScene;
 
 export type Episode = {
   id: string;
@@ -94,3 +107,4 @@ export const sfxSlug = (name: string) =>
 
 export const isTipCard = (s: Scene): s is TipCardScene => s.type === 'tipCard';
 export const isStepCard = (s: Scene): s is StepCardScene => s.type === 'stepCard';
+export const isTitleCard = (s: Scene): s is TitleCardScene => s.type === 'titleCard';

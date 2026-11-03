@@ -50,6 +50,7 @@ Animation cues (one string each, `target:action`):
 Body actions (jump, slide, spin, bark, play bow, sit drop, handoff, chew, cheeks puff) play one after another in the listed order. The other cues run across the whole scene. Unknown cues are skipped with a warning.
 
 `"type": "tipCard"` scenes render the clean recap card from `heading` and `steps`.
+`"type": "titleCard"` opens an episode: `series` (default "Luca Learns"), `episodeLabel` (e.g. "Episode 1") and `title` (e.g. "Sit!").
 `"type": "stepCard"` scenes show a bright "Step N" card with `step` and `text`, for step-by-step lessons.
 
 Story scenes can also set `"view": "side"` (profile Luca, which shows sitting and play bows clearly) and

@@ -3,7 +3,8 @@ import {AbsoluteFill, Html5Audio, Series, staticFile} from 'remotion';
 import {StoryScene} from './scenes/StoryScene';
 import {StepCard} from './scenes/StepCard';
 import {TipCard} from './scenes/TipCard';
-import {isStepCard, isTipCard, type Episode as EpisodeData, type EpisodeProps, type Scene} from './types';
+import {TitleCard} from './scenes/TitleCard';
+import {isStepCard, isTipCard, isTitleCard, type Episode as EpisodeData, type EpisodeProps, type Scene} from './types';
 import './fonts';
 
 /** Scene length in frames: the scripted duration, stretched if its voiceover clip runs longer. */
@@ -32,6 +33,8 @@ export const Episode: React.FC<EpisodeProps> = ({episode, audio, audioDurations,
         >
           {isTipCard(scene) ? (
             <TipCard scene={scene} episodeLabel={episodeLabel(episode)} />
+          ) : isTitleCard(scene) ? (
+            <TitleCard scene={scene} sfx={sfx ?? {}} />
           ) : isStepCard(scene) ? (
             <StepCard scene={scene} sfx={sfx ?? {}} />
           ) : (

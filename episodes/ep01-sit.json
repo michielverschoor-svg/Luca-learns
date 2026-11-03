@@ -10,6 +10,14 @@
   "background": "paper",
   "scenes": [
     {
+      "id": "title",
+      "type": "titleCard",
+      "durationSec": 4,
+      "series": "Luca Learns",
+      "episodeLabel": "Episode 1",
+      "title": "Sit!"
+    },
+    {
       "id": "s01",
       "durationSec": 6,
       "shot": "Wide. Luca zooms around the room, spins after his own tail and crashes into his platypus.",
