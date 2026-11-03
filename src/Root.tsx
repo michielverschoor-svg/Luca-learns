@@ -9,14 +9,15 @@ const defaultProps: EpisodeProps = {
   episode: ep01 as EpisodeData,
   audio: {},
   audioDurations: {},
+  sfx: {},
 };
 
 /** In the Studio, pick up any clips already sitting in audio/<episode>/. */
-const discoverAudio = (episode: EpisodeData): Record<string, string> => {
+const discoverAudio = (episode: EpisodeData, folder?: string): Record<string, string> => {
   const found: Record<string, string> = {};
   try {
     for (const file of getStaticFiles()) {
-      const m = new RegExp(`^${episode.id}/([^/]+)\\.mp3$`).exec(file.name);
+      const m = new RegExp(`^${folder ?? episode.id}/([^/]+)\\.mp3$`).exec(file.name);
       if (m) found[m[1]] = file.name;
     }
   } catch {
@@ -43,7 +44,11 @@ export const RemotionRoot: React.FC = () => (
           fps: props.episode.fps,
           width,
           height,
-          props: {...props, audio},
+          props: {
+            ...props,
+            audio,
+            sfx: props.sfx && Object.keys(props.sfx).length > 0 ? props.sfx : discoverAudio(props.episode, 'sfx'),
+          },
         };
       }}
     />

@@ -21,7 +21,7 @@ const episodeLabel = (episode: EpisodeData) => {
   return n ? `Luca Learns · Episode ${parseInt(n[1], 10)}` : 'Luca Learns';
 };
 
-export const Episode: React.FC<EpisodeProps> = ({episode, audio, audioDurations}) => (
+export const Episode: React.FC<EpisodeProps> = ({episode, audio, audioDurations, sfx}) => (
   <AbsoluteFill style={{backgroundColor: '#F6EEDC'}}>
     <Series>
       {episode.scenes.map((scene) => (
@@ -34,7 +34,7 @@ export const Episode: React.FC<EpisodeProps> = ({episode, audio, audioDurations}
             <TipCard scene={scene} episodeLabel={episodeLabel(episode)} />
           ) : (
             <>
-              <StoryScene scene={scene} />
+              <StoryScene scene={scene} sfx={sfx ?? {}} />
               {scene.voiceover ? <Subtitles text={scene.voiceover} /> : null}
             </>
           )}

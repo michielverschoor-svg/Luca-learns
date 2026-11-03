@@ -64,6 +64,18 @@ export type EpisodeProps = {
   audio: Record<string, string>;
   /** sceneId -> clip length in seconds, used to stretch scenes that are too short. */
   audioDurations: Record<string, number>;
+  /** Sound-effect name -> static file path inside audio/ (e.g. "thump" -> "sfx/thump.mp3"). */
+  sfx: Record<string, string>;
 };
+
+/** "sad trombone (short)" -> "sad-trombone", "pop cut x3" -> "pop-cut". */
+export const sfxSlug = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/\(.*?\)/g, '')
+    .replace(/\bx\d+\b/g, '')
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 
 export const isTipCard = (s: Scene): s is TipCardScene => s.type === 'tipCard';

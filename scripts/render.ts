@@ -17,7 +17,7 @@ import {bundle} from '@remotion/bundler';
 import {renderMedia, selectComposition} from '@remotion/renderer';
 import {parseMedia} from '@remotion/media-parser';
 import {nodeReader} from '@remotion/media-parser/node';
-import type {Episode, EpisodeProps} from '../src/types';
+import {sfxSlug, type Episode, type EpisodeProps} from '../src/types';
 
 const root = path.resolve(__dirname, '..');
 
@@ -77,7 +77,24 @@ const main = async () => {
       : `No voiceover clips in audio/${episode.id}/, rendering silent with subtitles.`,
   );
 
-  const inputProps: EpisodeProps = {episode, audio, audioDurations};
+  // Sound effects: audio/sfx/<name>.mp3 (make them with scripts/make_sfx.py).
+  const sfxDir = path.join(audioDir, 'sfx');
+  const sfx: Record<string, string> = {};
+  if (fs.existsSync(sfxDir)) {
+    for (const f of fs.readdirSync(sfxDir)) {
+      if (f.endsWith('.mp3')) sfx[f.replace(/\.mp3$/, '')] = `sfx/${f}`;
+    }
+  }
+  const wanted = new Set(
+    episode.scenes.flatMap((s) => ('sfx' in s && s.sfx ? s.sfx.map(sfxSlug) : [])),
+  );
+  const missing = [...wanted].filter((n) => !sfx[n]);
+  console.log(
+    `Sound effects: ${[...wanted].filter((n) => sfx[n]).length}/${wanted.size} found` +
+      (missing.length ? ` (missing: ${missing.join(', ')})` : ''),
+  );
+
+  const inputProps: EpisodeProps = {episode, audio, audioDurations, sfx};
   const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE || null;
 
   console.log('Bundling...');

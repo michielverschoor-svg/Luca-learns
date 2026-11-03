@@ -1,12 +1,21 @@
 import React, {useMemo} from 'react';
-import {AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig} from 'remotion';
+import {
+  AbsoluteFill,
+  Easing,
+  Html5Audio,
+  interpolate,
+  Sequence,
+  staticFile,
+  useCurrentFrame,
+  useVideoConfig,
+} from 'remotion';
 import {Platypus} from '../character/BodyParts';
 import {Luca} from '../character/Luca';
 import {restPose, type LucaPose} from '../character/pose';
 import {PENCIL, Sketch} from '../character/sketch';
 import {buildTimeline, parseCues, type SceneTimeline, type TimedAction} from '../episode/cues';
 import {FONTS} from '../fonts';
-import type {Framing, Location, StoryScene as StorySceneData} from '../types';
+import {sfxSlug, type Framing, type Location, type StoryScene as StorySceneData} from '../types';
 import {Background, GROUND_Y} from './Backgrounds';
 import {Hand, HumanLegs} from './Human';
 import {Paper} from './Paper';
@@ -460,7 +469,63 @@ const Effects: React.FC<{st: FrameState; frame: number}> = ({st, frame}) => {
   );
 };
 
-export const StoryScene: React.FC<{scene: StorySceneData}> = ({scene}) => {
+/**
+ * When each sound effect fires, matched by name to the scene's actions:
+ * "thump" lands with the jump, "bark" on each bark, "pop" on each cut, etc.
+ * Returns frame offsets, or 'loop' for ambience.
+ */
+const sfxTimes = (name: string, tl: SceneTimeline, frames: number, fps: number): number[] | 'loop' => {
+  const act = (kind: TimedAction['kind']) => tl.actions.find((a) => a.kind === kind);
+  const at = (a: TimedAction | undefined, p: number) => (a ? [Math.round(a.start + (a.end - a.start) * p)] : null);
+  if (/room|ambien|tone/.test(name)) return 'loop';
+  if (/sigh/.test(name)) return at(act('cheeksPuff'), 0.58) ?? [Math.round(frames * 0.3)];
+  if (/thump/.test(name)) {
+    const jump = act('jump');
+    return at(jump, jump?.chainedInto === 'slide' ? 0.45 : 0.85) ?? [0];
+  }
+  if (/scrabble/.test(name)) return at(act('slide'), 0) ?? [Math.round(frames * 0.2)];
+  if (/trombone/.test(name)) return [Math.max(0, frames - Math.round(2.6 * fps))];
+  if (/bark|woof/.test(name)) {
+    const b = act('bark');
+    return b ? [0.08, 0.58].map((p) => Math.round(b.start + (b.end - b.start) * p)) : [0];
+  }
+  if (/whoosh/.test(name)) return at(act('spin'), 0.05) ?? [0];
+  if (/sparkle/.test(name)) return [Math.round(frames * 0.12)];
+  if (/plop/.test(name)) return at(act('sitDrop'), 0.28) ?? [0];
+  if (/crunch|chew/.test(name)) return at(act('chew'), 0.02) ?? [0];
+  if (/pop/.test(name)) return tl.segments.map((s) => s.start);
+  if (/twinkle/.test(name)) return [Math.round(frames * 0.4)];
+  return [0];
+};
+
+const SceneSfx: React.FC<{
+  names: string[];
+  files: Record<string, string>;
+  tl: SceneTimeline;
+  frames: number;
+  fps: number;
+}> = ({names, files, tl, frames, fps}) => (
+  <>
+    {names.map((raw) => {
+      const file = files[sfxSlug(raw)];
+      if (!file) return null;
+      const times = sfxTimes(raw.toLowerCase(), tl, frames, fps);
+      if (times === 'loop') {
+        return <Html5Audio key={raw} src={staticFile(file)} loop volume={0.8} />;
+      }
+      return times.map((t, i) => (
+        <Sequence key={`${raw}-${i}`} from={t} layout="none">
+          <Html5Audio src={staticFile(file)} volume={0.45} />
+        </Sequence>
+      ));
+    })}
+  </>
+);
+
+export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, string>}> = ({
+  scene,
+  sfx = {},
+}) => {
   const frame = useCurrentFrame();
   const {fps, durationInFrames} = useVideoConfig();
   const {tl, setup} = useMemo(() => {
@@ -500,6 +565,7 @@ export const StoryScene: React.FC<{scene: StorySceneData}> = ({scene}) => {
           </g>
         </svg>
       </AbsoluteFill>
+      <SceneSfx names={scene.sfx ?? []} files={sfx} tl={tl} frames={durationInFrames} fps={fps} />
     </AbsoluteFill>
   );
 };
