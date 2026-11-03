@@ -1,5 +1,5 @@
 import React from 'react';
-import {Hatch, Sketch, wobbleLine, wobbleRect} from '../character/sketch';
+import {Hatch, LineScaleContext, Sketch, wobbleLine, wobbleRect} from '../character/sketch';
 import type {Location} from '../types';
 
 /* Everything here is drawn in stage coordinates (1920 x 1080). */
@@ -80,7 +80,7 @@ const Room: React.FC = () => (
     <Dots color={C.white} />
     {/* window with sky, sun and a cloud */}
     <Sketch d={wobbleRect(1290, 130, 380, 400, 'win')} fill={C.skyLight} fillOpacity={1} seed="win" />
-    <circle cx={1580} cy={220} r={46} fill={C.sun} stroke="#3A2A20" strokeWidth={4} />
+    <circle cx={1580} cy={220} r={46} fill={C.sun} stroke="#3A2A20" strokeWidth={6} />
     <Sketch d="M1340 300q10 -30 40 -20q16 -26 46 -8q30 -6 34 22q20 6 10 26l-126 0q-20 -6 -4 -20Z" fill={C.white} fillOpacity={1} seed="cloud" />
     <Sketch d={`${wobbleLine(1480, 134, 1482, 528, 'win-v')}${wobbleLine(1294, 330, 1666, 332, 'win-h')}`} strokeWidth={2.4} seed="win-bars" />
     {/* curtains */}
@@ -92,8 +92,8 @@ const Room: React.FC = () => (
     <g transform="rotate(-3 410 300)">
       <Sketch d={wobbleRect(300, 210, 220, 170, 'frame')} fill={C.sun} fillOpacity={1} seed="frame" />
       <Sketch d={wobbleRect(322, 230, 176, 130, 'frame-in')} fill={C.white} fillOpacity={1} strokeWidth={1.8} seed="frame-in" />
-      <path d="M350 330Q380 260 410 310Q440 270 470 330Z" fill={C.mint} stroke="#3A2A20" strokeWidth={3} />
-      <circle cx={455} cy={262} r={14} fill={C.coral} stroke="#3A2A20" strokeWidth={3} />
+      <path d="M350 330Q380 260 410 310Q440 270 470 330Z" fill={C.mint} stroke="#3A2A20" strokeWidth={5.5} />
+      <circle cx={455} cy={262} r={14} fill={C.coral} stroke="#3A2A20" strokeWidth={5.5} />
     </g>
     {/* bunting */}
     <Sketch d="M-40 40Q300 110 640 40Q980 110 1240 50" strokeWidth={1.6} seed="bunting" />
@@ -125,15 +125,15 @@ const Kitchen: React.FC = () => {
         <g key={x}>
           <Sketch d={wobbleRect(x + 16, 250, 258, 100, `drawer${i}`)} strokeWidth={2} seed={`drawer${i}`} />
           <Sketch d={wobbleRect(x + 16, 370, 258, 330, `door${i}`)} strokeWidth={2} seed={`door${i}`} />
-          <circle cx={x + 145} cy={300} r={13} fill={handle[i]} stroke="#3A2A20" strokeWidth={3.5} />
-          <circle cx={x + 240} cy={530} r={13} fill={handle[i]} stroke="#3A2A20" strokeWidth={3.5} />
+          <circle cx={x + 145} cy={300} r={13} fill={handle[i]} stroke="#3A2A20" strokeWidth={6} />
+          <circle cx={x + 240} cy={530} r={13} fill={handle[i]} stroke="#3A2A20" strokeWidth={6} />
           <Hatch d={`M${x + 40} 400l30 30M${x + 40} 440l50 50M${x + 40} 480l30 30`} color={C.white} opacity={0.6} width={3} />
         </g>
       ))}
       {/* oven */}
       <Sketch d={wobbleRect(560, 240, 580, 470, 'oven', 3)} fill={C.white} fillOpacity={1} seed="oven" />
       {[620, 760, 900, 1040].map((x) => (
-        <circle key={x} cx={x + 20} cy={275} r={14} fill={C.red} stroke="#3A2A20" strokeWidth={3.5} />
+        <circle key={x} cx={x + 20} cy={275} r={14} fill={C.red} stroke="#3A2A20" strokeWidth={6} />
       ))}
       <Sketch d={wobbleLine(620, 330, 1080, 330, 'oven-bar', 1)} strokeWidth={6} seed="oven-bar" />
       <Sketch d={wobbleRect(620, 370, 460, 290, 'oven-win', 3)} fill="#3B3B58" fillOpacity={1} seed="oven-win" />
@@ -148,8 +148,8 @@ const Kitchen: React.FC = () => {
       />
       <Hatch d="M700 360L760 360M700 390L760 390M700 430L760 430" color={C.white} opacity={1} width={6} />
       {/* fruit bowl on the counter */}
-      <circle cx={1360} cy={170} r={26} fill={C.red} stroke="#3A2A20" strokeWidth={3.5} />
-      <circle cx={1404} cy={176} r={22} fill={C.sun} stroke="#3A2A20" strokeWidth={3.5} />
+      <circle cx={1360} cy={170} r={26} fill={C.red} stroke="#3A2A20" strokeWidth={6} />
+      <circle cx={1404} cy={176} r={22} fill={C.sun} stroke="#3A2A20" strokeWidth={6} />
       <Sketch d="M1310 180Q1380 250 1450 180Z" fill={C.teal} fillOpacity={1} seed="bowl" />
       <Floor color="#FFE3D6" lines="#E0A080" checker="#FFB8A0" />
     </g>
@@ -185,7 +185,7 @@ const Bathroom: React.FC = () => (
     <Sketch d="M1130 470Q1130 440 1170 440L1930 440L1930 740L1230 740Q1140 740 1132 640Z" fill={C.white} fillOpacity={1} seed="tub" />
     <Sketch d={wobbleLine(1140, 486, 1930, 486, 'tub-rim', 2)} strokeWidth={2} seed="tub-rim" />
     {[0, 1, 2, 3, 4].map((i) => (
-      <circle key={i} cx={1300 + i * 110} cy={400 - (i % 2) * 40} r={16 + (i % 3) * 6} fill={C.white} stroke="#3A2A20" strokeWidth={3} opacity={0.9} />
+      <circle key={i} cx={1300 + i * 110} cy={400 - (i % 2) * 40} r={16 + (i % 3) * 6} fill={C.white} stroke="#3A2A20" strokeWidth={5.5} opacity={0.9} />
     ))}
     <Sketch d="M1230 740l-10 26M1880 740l10 26" strokeWidth={5} seed="tub-feet" />
     {/* shower curtain, yellow with dots */}
@@ -216,8 +216,8 @@ const Fridge: React.FC = () => (
     <Sketch d={wobbleRect(-60, 330, 860, WALL_FLOOR_Y - 330 - 30, 'f-cab', 3)} fill={C.teal} fillOpacity={1} seed="f-cab" />
     <Sketch d={wobbleRect(-20, 360, 360, 340, 'f-door1')} strokeWidth={2} seed="f-door1" />
     <Sketch d={wobbleRect(380, 360, 380, 340, 'f-door2')} strokeWidth={2} seed="f-door2" />
-    <circle cx={300} cy={530} r={13} fill={C.coral} stroke="#3A2A20" strokeWidth={3.5} />
-    <circle cx={420} cy={530} r={13} fill={C.coral} stroke="#3A2A20" strokeWidth={3.5} />
+    <circle cx={300} cy={530} r={13} fill={C.coral} stroke="#3A2A20" strokeWidth={6} />
+    <circle cx={420} cy={530} r={13} fill={C.coral} stroke="#3A2A20" strokeWidth={6} />
     {/* retro mint fridge */}
     <Sketch d="M1100 -60L1700 -60L1700 770L1100 770Z" fill={C.mint} fillOpacity={1} seed="fridge" />
     <Sketch d={wobbleLine(1100, 300, 1700, 302, 'fridge-split', 2)} seed="fridge-split" />
@@ -229,20 +229,26 @@ const Fridge: React.FC = () => (
       <path d="M1370 480Q1380 430 1430 440Q1470 430 1480 480M1390 480l0 30M1460 480l0 30M1410 420q-10 -20 10 -24q20 0 14 22" fill="none" stroke={C.red} strokeWidth={5} strokeLinecap="round" />
       <path d="M1350 520l160 0" stroke={C.mint} strokeWidth={6} strokeLinecap="round" />
       <circle cx={1350} cy={390} r={18} fill={C.sun} />
-      <circle cx={1425} cy={364} r={13} fill={C.sky} stroke="#3A2A20" strokeWidth={3} />
+      <circle cx={1425} cy={364} r={13} fill={C.sky} stroke="#3A2A20" strokeWidth={5.5} />
     </g>
     <g transform="rotate(5 1250 180)">
       <Sketch d={wobbleRect(1190, 120, 130, 120, 'note')} fill={C.sun} fillOpacity={1} strokeWidth={2} seed="note" />
       <Hatch d="M1206 160L1300 160M1206 185L1290 185M1206 210L1270 210" color="#3A2A20" opacity={0.5} width={3} />
     </g>
-    <circle cx={1580} cy={420} r={15} fill={C.lilac} stroke="#3A2A20" strokeWidth={3} />
-    <circle cx={1220} cy={620} r={14} fill={C.red} stroke="#3A2A20" strokeWidth={3} />
-    <circle cx={1620} cy={180} r={14} fill={C.orange} stroke="#3A2A20" strokeWidth={3} />
+    <circle cx={1580} cy={420} r={15} fill={C.lilac} stroke="#3A2A20" strokeWidth={5.5} />
+    <circle cx={1220} cy={620} r={14} fill={C.red} stroke="#3A2A20" strokeWidth={5.5} />
+    <circle cx={1620} cy={180} r={14} fill={C.orange} stroke="#3A2A20" strokeWidth={5.5} />
     <Floor color="#FFE3D6" lines="#E0A080" checker="#FFC9B8" />
   </g>
 );
 
-export const Background: React.FC<{location: Location}> = ({location}) => {
+export const Background: React.FC<{location: Location}> = ({location}) => (
+  <LineScaleContext.Provider value={1.7}>
+    <BackgroundInner location={location} />
+  </LineScaleContext.Provider>
+);
+
+const BackgroundInner: React.FC<{location: Location}> = ({location}) => {
   switch (location) {
     case 'kitchen':
       return <Kitchen />;

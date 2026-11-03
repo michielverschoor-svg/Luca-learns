@@ -102,7 +102,10 @@ const computeFrame = (
   const side = scene.view === 'side';
   const lx = setup.human ? 1120 : SPOT[location] + (side ? 100 : 0);
   const ly = GROUND_Y;
-  const toward = setup.human ? -(lx - HUMAN_X - 300) / S : 0;
+  // How far he travels toward the human's legs when jumping at them (sketch units).
+  // The side view is mirrored (facing left), so its offset is positive.
+  // Side: rearing up swings him back over his hind feet, so he travels far enough for his front paws to land on the leg.
+  const toward = setup.human ? (side ? (lx - HUMAN_X - 140) / S2 - 62 : -(lx - HUMAN_X - 300) / S) : 0;
 
   // Ambient life: breathing and a lazy tail.
   pose.breathe = Math.sin((2 * Math.PI * f) / (2.6 * fps));
@@ -163,10 +166,20 @@ const computeFrame = (
     const hy = -240 + 34 * pose.stand;
     return [hx, hy];
   };
-  const headX = () => (side ? lx - sideHead()[0] * S2 : lx + pose.bodyX * S);
+  // Side head position, including the rear-up swing around his hind feet (see LucaSide).
+  const sideHeadStage = (): [number, number] => {
+    const [hx, hy] = sideHead();
+    const a = (-34 * pose.reach * Math.PI) / 180;
+    const px = -70;
+    const py = -13;
+    const rx = px + (hx - px) * Math.cos(a) - (hy - py) * Math.sin(a);
+    const ry = py + (hx - px) * Math.sin(a) + (hy - py) * Math.cos(a);
+    return [lx - (rx + pose.bodyX) * S2, ly + (ry + pose.bodyY) * S2];
+  };
+  const headX = () => (side ? sideHeadStage()[0] : lx + pose.bodyX * S);
   const headY = () =>
     side
-      ? ly + (sideHead()[1] + pose.bodyY) * S2
+      ? sideHeadStage()[1]
       : ly + (228 - 532 + pose.bodyY - 30 * pose.stand + 77 * pose.bow - 12 * pose.tipBack) * S;
   let hand: FrameState['hand'] = null;
   if (setup.hand) {
@@ -366,6 +379,13 @@ const computeFrame = (
     hand = {x: side ? lx - 330 : lx - 170, y: ly - 500 + 5 * Math.sin(f / 8), treat: true};
   }
 
+  // In profile he rears up on his hind legs instead of flying, so keep the hop small.
+  if (side) {
+    pose.bodyY *= 0.35;
+    // Up on his hind legs: a standing body that rears up, not a sitting one.
+    pose.stand = Math.max(pose.stand, Math.min(1, pose.reach * 1.5));
+  }
+
   if (extraWag) pose.tailWag += extraWag * Math.sin((2 * Math.PI * 4 * f) / fps);
 
   // Eyes follow the treat.
@@ -509,6 +529,15 @@ const sfxTimes = (name: string, tl: SceneTimeline, frames: number, fps: number):
   const act = (kind: TimedAction['kind']) => tl.actions.find((a) => a.kind === kind);
   const at = (a: TimedAction | undefined, p: number) => (a ? [Math.round(a.start + (a.end - a.start) * p)] : null);
   if (/room|ambien|tone/.test(name)) return 'loop';
+  const tip = act('tipOver');
+  if (/slide whistle up/.test(name)) return [Math.round(frames * 0.12)];
+  if (/slide whistle/.test(name)) return at(act('slide'), 0) ?? [Math.round(frames * 0.2)];
+  if (/boing/.test(name)) return at(act('jump'), 0.1) ?? [0];
+  if (/squeak/.test(name)) return at(tip, 0.82) ?? at(act('jump'), 0.85) ?? [Math.round(frames * 0.7)];
+  if (/slurp/.test(name)) return [Math.round(frames * 0.35)];
+  if (/snore/.test(name)) return tip ? [tip.end, tip.end + Math.round(2.3 * fps)] : [Math.round(frames * 0.3)];
+  if (/ding/.test(name)) return [humanLineFrame(tl, frames)];
+  if (/chime/.test(name)) return [0];
   if (/sigh/.test(name)) return at(act('cheeksPuff'), 0.58) ?? [Math.round(frames * 0.3)];
   if (/thump/.test(name)) {
     const jump = act('jump');
@@ -664,6 +693,14 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
       ))}
       {scene.humanLine ? <HumanLine text={scene.humanLine} at={humanLineFrame(tl, durationInFrames)} /> : null}
       <SceneSfx names={scene.sfx ?? []} files={sfx} tl={tl} frames={durationInFrames} fps={fps} />
+      {/* a soft pop whenever a thought bubble appears */}
+      {sfx['bubble-pop']
+        ? thoughts.map((t, i) => (
+            <Sequence key={`pop${i}`} from={t.from} layout="none">
+              <Html5Audio src={staticFile(sfx['bubble-pop'])} volume={0.35} />
+            </Sequence>
+          ))
+        : null}
     </AbsoluteFill>
   );
 };

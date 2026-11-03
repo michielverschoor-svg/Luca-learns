@@ -1,5 +1,5 @@
 import React from 'react';
-import {AbsoluteFill, interpolate, random, spring, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, Html5Audio, interpolate, random, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {Luca} from '../character/Luca';
 import {restPose} from '../character/pose';
 import {FONTS} from '../fonts';
@@ -11,7 +11,7 @@ const BG = ['#8FD3F4', '#FFD23F', '#7ED6A5', '#FF8FB1', '#B79CF2'];
 const BADGE = ['#FF7A59', '#5CC8C0', '#FF7A59', '#5CC8C0', '#FF7A59'];
 
 /** "Step N" card: a bright full-screen title between lesson scenes. */
-export const StepCard: React.FC<{scene: StepCardScene}> = ({scene}) => {
+export const StepCard: React.FC<{scene: StepCardScene; sfx?: Record<string, string>}> = ({scene, sfx = {}}) => {
   const frame = useCurrentFrame();
   const {fps, durationInFrames} = useVideoConfig();
   const t = frame / fps;
@@ -32,6 +32,7 @@ export const StepCard: React.FC<{scene: StepCardScene}> = ({scene}) => {
 
   return (
     <AbsoluteFill style={{backgroundColor: BG[i], opacity: out}}>
+      {sfx.chime ? <Html5Audio src={staticFile(sfx.chime)} volume={0.5} /> : null}
       <AbsoluteFill>
         <svg viewBox="0 0 1920 1080" width="100%" height="100%">
           {new Array(18).fill(0).map((_, k) => (

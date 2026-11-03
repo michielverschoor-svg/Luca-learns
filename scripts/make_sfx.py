@@ -212,6 +212,76 @@ def twinkle():
     return mix_at([(0, bell(1568, 1.0, 0.35)), (0.11, bell(2093, 1.0, 0.3)), (0.22, bell(2637, 1.2, 0.28))], 1.5)
 
 
+def boing():
+    sec = 0.7
+    n = int(sec * SR)
+    tt = np.arange(n) / SR
+    f = 260 * (1 + 0.45 * np.sin(2 * math.pi * 13 * tt) * np.exp(-4.5 * tt)) * (1 + 0.5 * tt)
+    x = np.sin(2 * math.pi * np.cumsum(f) / SR)
+    return x * env(n, 0.005, 0.55, 1.4)
+
+
+def squeak():
+    """Squeaky dog toy: two quick nasal chirps."""
+    def chirp(f0, f1, sec):
+        n = int(sec * SR)
+        f = np.linspace(f0, f1, n) ** 1.0
+        x = saw(f, n) * 0.6 + np.sin(2 * math.pi * np.cumsum(f) / SR)
+        x = biquad(x, "bp", 2200, 1.5)
+        return x * env(n, 0.01, sec * 0.6)
+    return mix_at([(0, chirp(1700, 2600, 0.13)), (0.17, chirp(1900, 1500, 0.16))], 0.45) * 1.8
+
+
+def slide_whistle(f0, f1, sec):
+    n = int(sec * SR)
+    tt = np.arange(n) / SR
+    f = np.exp(np.linspace(math.log(f0), math.log(f1), n)) * (1 + 0.012 * np.sin(2 * math.pi * 7 * tt))
+    x = np.sin(2 * math.pi * np.cumsum(f) / SR) + 0.15 * biquad(noise(sec), "bp", f0, 4)
+    return x * env(n, 0.03, 0.12)
+
+
+def slide_whistle_down():
+    return slide_whistle(1500, 320, 0.8)
+
+
+def slide_whistle_up():
+    return slide_whistle(380, 1500, 1.0)
+
+
+def slurp():
+    sec = 0.6
+    n = noise(sec)
+    center = np.linspace(500, 1600, len(n))
+    x = biquad(n, "bp", center, 3)
+    tt = np.arange(len(n)) / SR
+    gurgle = 0.55 + 0.45 * np.sin(2 * math.pi * 28 * tt)
+    return x * gurgle * env(len(n), 0.03, 0.2) * 2.2
+
+
+def snore():
+    sec = 2.2
+    n = noise(sec)
+    tt = np.arange(len(n)) / SR
+    inhale = biquad(n, "lp", 260) * (0.6 + 0.4 * np.sin(2 * math.pi * 45 * tt))
+    inhale *= np.clip(np.sin(math.pi * tt / 1.2), 0, None) * (tt < 1.2)
+    whistle = np.sin(2 * math.pi * np.cumsum(np.linspace(950, 700, len(n))) / SR) * 0.25
+    whistle *= np.clip(np.sin(math.pi * (tt - 1.3) / 0.8), 0, None) * (tt > 1.3)
+    return (inhale * 2.5 + whistle) * 0.8
+
+
+def ding():
+    return mix_at([(0, bell(1318, 1.3, 0.6)), (0, bell(2637, 0.8, 0.15))], 1.3)
+
+
+def chime():
+    return mix_at([(0, bell(1047, 1.0, 0.4)), (0.09, bell(1319, 1.0, 0.35)), (0.18, bell(1568, 1.1, 0.35))], 1.3)
+
+
+def bubble_pop():
+    x = sweep_sine(320, 1250, 0.045, 0.7) * env(int(0.045 * SR), 0.002, 0.03)
+    return pad(x * 0.7, 0.05)
+
+
 EFFECTS = {
     "room-tone": room_tone,
     "dramatic-sigh": dramatic_sigh,
@@ -225,6 +295,15 @@ EFFECTS = {
     "crunch": crunch,
     "pop-cut": pop_cut,
     "twinkle": twinkle,
+    "boing": boing,
+    "squeak": squeak,
+    "slide-whistle": slide_whistle_down,
+    "slide-whistle-up": slide_whistle_up,
+    "slurp": slurp,
+    "snore": snore,
+    "ding": ding,
+    "chime": chime,
+    "bubble-pop": bubble_pop,
 }
 
 

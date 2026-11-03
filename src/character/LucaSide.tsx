@@ -312,7 +312,16 @@ export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
 
   const hind = (dx: number): Pt[] => [add(k.knee, [dx, 0]), add(k.hock, [dx, 0]), add(k.hindPaw, [dx, 0])];
   const shoulder = add(k.chest, [10, 26]);
-  const front = (dx: number): Pt[] => [add(shoulder, [dx, 0]), add(k.elbow, [dx, 0]), add(k.frontPaw, [dx, 0])];
+  // Front paws reach forward and up when he jumps at something, and paddle when scrabbling.
+  const frontPaw = (dx: number, phase: number): Pt => {
+    const scr = -22 * pose.scrabble * Math.max(0, Math.sin(pose.scrabblePhase + phase));
+    return add(k.frontPaw, [dx + 56 * pose.reach, -34 * pose.reach + scr]);
+  };
+  const front = (dx: number, phase = 0): Pt[] => [
+    add(shoulder, [dx, 0]),
+    add(k.elbow, [dx + 34 * pose.reach, -14 * pose.reach]),
+    frontPaw(dx, phase),
+  ];
   const neckBase = add(k.chest, [16, -28]);
   const tailBase = add(k.rump, [-44, -16]);
   const tailTip = add(tailBase, k.tailTip);
@@ -328,8 +337,8 @@ export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
 
   const paw = (p: Pt, fill: string, seed: string, toes: boolean) => (
     <g>
-      <Union shapes={[{t: 'ellipse', c: [p[0] + 12, -14], rx: 34, ry: 17, rot: 0}]} fill={fill} seed={seed} />
-      {toes ? <Sketch d={`M${p[0] + 26} -24l0 16M${p[0] + 36} -22l0 14`} strokeWidth={2} seed={`${seed}-toes`} /> : null}
+      <Union shapes={[{t: 'ellipse', c: [p[0] + 12, p[1] - 1], rx: 34, ry: 17, rot: 0}]} fill={fill} seed={seed} />
+      {toes ? <Sketch d={`M${p[0] + 26} ${p[1] - 11}l0 16M${p[0] + 36} ${p[1] - 9}l0 14`} strokeWidth={2} seed={`${seed}-toes`} /> : null}
     </g>
   );
 
@@ -340,13 +349,13 @@ export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
       <ellipse cx={0} cy={4} rx={150 * (1 - air)} ry={12} fill="#000" opacity={0.07 * (1 - air)} />
       <Hatch d="M-140 10L140 10M-110 16L110 16" opacity={0.5 * (1 - air)} />
       <g
-        transform={`translate(${pose.bodyX} ${pose.bodyY}) rotate(${pose.lean}) scale(${Math.sign(pose.spin || 1) * Math.max(0.06, Math.abs(pose.spin))} ${pose.squash * breath})`}
+        transform={`translate(${pose.bodyX} ${pose.bodyY}) rotate(${pose.lean}) scale(${Math.sign(pose.spin || 1) * Math.max(0.06, Math.abs(pose.spin))} ${pose.squash * breath}) rotate(${-34 * pose.reach} -70 -13)`}
       >
         {/* far legs, in the haunch shade */}
         <Union shapes={[{t: 'seg', pts: hind(-16), w: 28}]} fill={LUCA.haunches} seed="side-hind-far" />
         {paw(add(k.hindPaw, [-16, 0]), LUCA.haunches, 'side-hpaw-far', false)}
-        <Union shapes={[{t: 'seg', pts: front(-18), w: 34}]} fill={LUCA.haunches} seed="side-front-far" />
-        {paw(add(k.frontPaw, [-18, 0]), LUCA.haunches, 'side-fpaw-far', false)}
+        <Union shapes={[{t: 'seg', pts: front(-18, Math.PI), w: 34}]} fill={LUCA.haunches} seed="side-front-far" />
+        {paw(frontPaw(-18, Math.PI), LUCA.haunches, 'side-fpaw-far', false)}
 
         {/* feathered tail */}
         <g transform={`rotate(${pose.tailWag} ${tailBase[0]} ${tailBase[1]})`}>
@@ -397,7 +406,7 @@ export const LucaSide: React.FC<Props> = ({pose, x, y, scale, flip}) => {
         <Hatch d={`M${k.thigh[0] - 20} ${k.thigh[1] - 10}q8 8 4 20M${k.thigh[0]} ${k.thigh[1] - 14}q8 8 4 20M${k.thigh[0] + 18} ${k.thigh[1] - 6}q6 6 2 16`} />
 
         {/* near front paw in front of everything */}
-        {paw(k.frontPaw, LUCA.muzzle, 'side-fpaw-near', true)}
+        {paw(frontPaw(0, 0), LUCA.muzzle, 'side-fpaw-near', true)}
 
         {/* bandana around the neck */}
         <Sketch

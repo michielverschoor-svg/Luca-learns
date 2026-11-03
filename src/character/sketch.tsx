@@ -11,6 +11,9 @@ export const LINE = 1.75;
 /** Frames per "line boil" step. 0 disables the boil (perfectly still lines). */
 export const BoilContext = createContext(4);
 
+/** Extra line weight for a whole subtree (backgrounds use thicker lines). */
+export const LineScaleContext = createContext(1);
+
 const useBoil = (seed: string) => {
   const step = useContext(BoilContext);
   const frame = useCurrentFrame();
@@ -54,6 +57,7 @@ export const Sketch: React.FC<SketchProps> = ({
   stroke = PENCIL,
 }) => {
   const boil = useBoil(seed ?? d.slice(0, 24));
+  const ls = useContext(LineScaleContext);
   const lines = detail ? `${d} ${detail}` : d;
   return (
     <g>
@@ -69,7 +73,7 @@ export const Sketch: React.FC<SketchProps> = ({
         d={lines}
         fill="none"
         stroke={stroke}
-        strokeWidth={strokeWidth * LINE}
+        strokeWidth={strokeWidth * LINE * ls}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -77,7 +81,7 @@ export const Sketch: React.FC<SketchProps> = ({
         d={lines}
         fill="none"
         stroke={stroke}
-        strokeWidth={strokeWidth * 0.5}
+        strokeWidth={strokeWidth * 0.5 * ls}
         opacity={0.5}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -88,17 +92,22 @@ export const Sketch: React.FC<SketchProps> = ({
 };
 
 /** Light brown pencil hatching. */
+const HatchPath: React.FC<React.SVGProps<SVGPathElement> & {width: number}> = ({width, ...rest}) => {
+  const ls = useContext(LineScaleContext);
+  return <path {...rest} strokeWidth={width * ls} />;
+};
+
 export const Hatch: React.FC<{d: string; opacity?: number; color?: string; width?: number}> = ({
   d,
   opacity = 0.6,
   color = HATCH,
   width = 1.7,
 }) => (
-  <path
+  <HatchPath
     d={d}
     fill="none"
     stroke={color}
-    strokeWidth={width}
+    width={width}
     opacity={opacity}
     strokeLinecap="round"
   />

@@ -33,7 +33,7 @@ export const Episode: React.FC<EpisodeProps> = ({episode, audio, audioDurations,
           {isTipCard(scene) ? (
             <TipCard scene={scene} episodeLabel={episodeLabel(episode)} />
           ) : isStepCard(scene) ? (
-            <StepCard scene={scene} />
+            <StepCard scene={scene} sfx={sfx ?? {}} />
           ) : (
             <StoryScene scene={scene} sfx={sfx ?? {}} />
           )}

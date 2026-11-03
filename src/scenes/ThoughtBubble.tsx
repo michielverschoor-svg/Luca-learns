@@ -3,12 +3,13 @@ import {interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
 import {PENCIL} from '../character/sketch';
 import {FONTS} from '../fonts';
 
-export const BUBBLE_COLORS = ['#FFE27A', '#A8E1FA', '#FFB3CB', '#A9EBC4', '#D3C2FA', '#FFC98F'];
+/** Strong colours so bold white text stands out. */
+export const BUBBLE_COLORS = ['#FF7A59', '#2FA3E6', '#F2549B', '#22B573', '#8B6CE6', '#FF9A1F'];
 
-const FONT_SIZE = 50;
+const FONT_SIZE = 46;
 const LINE_H = 58;
 const MAX_TEXT_W = 560;
-const CHAR_W = 21;
+const CHAR_W = 25;
 
 /** Rough text box size for the hand-lettered font. */
 const measure = (text: string) => {
@@ -126,10 +127,13 @@ export const ThoughtBubble: React.FC<Props> = ({text, head, color, from, to}) =>
                 alignItems: 'center',
                 justifyContent: 'center',
                 textAlign: 'center',
-                fontFamily: FONTS.hand,
+                fontFamily: FONTS.clean,
+                fontWeight: 800,
                 fontSize: FONT_SIZE,
                 lineHeight: `${LINE_H}px`,
-                color: PENCIL,
+                color: '#FFFFFF',
+                WebkitTextStroke: `7px ${PENCIL}`,
+                paintOrder: 'stroke fill',
               }}
             >
               {text}
