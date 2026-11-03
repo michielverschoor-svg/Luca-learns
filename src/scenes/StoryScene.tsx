@@ -684,6 +684,7 @@ export const StoryScene: React.FC<{scene: StorySceneData; sfx?: Record<string, s
           from={t.from}
           to={t.to}
           color={BUBBLE_COLORS[(colorSeed + i) % BUBBLE_COLORS.length]}
+          avoid={st.hand ? {x: 960 + (st.hand.x - cam.fx) * cam.z, y: 540 + (st.hand.y - cam.fy) * cam.z} : null}
           head={{
             x: 960 + (st.head.x - cam.fx) * cam.z,
             y: 540 + (st.head.y - cam.fy) * cam.z,

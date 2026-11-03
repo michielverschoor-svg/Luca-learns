@@ -121,20 +121,24 @@
     {
       "id": "s06",
       "durationSec": 6,
-      "shot": "Medium. Patience runs out. He jumps for the treat, misses and slides back down.",
+      "shot": "Side view. Patience runs out. He rears up and jumps for the treat, misses and slides back down.",
       "expression": "betrayed",
       "animation": [
         "body:jump",
         "body:slide down"
       ],
-      "voiceover": "Plan B: just take it. ...Plan B has been cancelled.",
+      "voiceover": [
+        "Plan B: I just take it!",
+        "That didn't work."
+      ],
       "sfx": [
         "boing",
         "thump",
         "slide whistle",
         "sad trombone (short)"
       ],
-      "treat": true
+      "treat": true,
+      "view": "side"
     },
     {
       "id": "step3",

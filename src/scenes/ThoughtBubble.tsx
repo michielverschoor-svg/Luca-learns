@@ -35,6 +35,8 @@ type Props = {
   /** Luca's head on screen (1920x1080 coordinates) and its radius on screen. */
   head: {x: number; y: number; r: number};
   color: string;
+  /** A point on screen the cloud should not cover (the treat in the hand). */
+  avoid?: {x: number; y: number} | null;
   /** Frames (relative to the current sequence) the bubble is shown. */
   from: number;
   to: number;
@@ -44,7 +46,7 @@ type Props = {
  * Luca's inner monologue as a scalloped thought cloud beside his head, with
  * three little bubbles trailing back to him.
  */
-export const ThoughtBubble: React.FC<Props> = ({text, head, color, from, to}) => {
+export const ThoughtBubble: React.FC<Props> = ({text, head, color, from, to, avoid}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   if (frame < from || frame > to) return null;
@@ -55,9 +57,19 @@ export const ThoughtBubble: React.FC<Props> = ({text, head, color, from, to}) =>
 
   const {w, h} = measure(text);
   // Put the cloud on the roomier side of his head, a little above it.
-  const right = head.x < 960;
-  const cx = Math.min(1900 - w / 2, Math.max(20 + w / 2, head.x + (right ? 1 : -1) * (head.r + w / 2 + 30)));
-  const cy = Math.min(1060 - h / 2, Math.max(20 + h / 2, head.y - head.r * 0.9 - h * 0.25)) + bob;
+  const place = (right: boolean) => ({
+    cx: Math.min(1900 - w / 2, Math.max(20 + w / 2, head.x + (right ? 1 : -1) * (head.r + w / 2 + 30))),
+    cy: Math.min(1060 - h / 2, Math.max(20 + h / 2, head.y - head.r * 0.9 - h * 0.25)),
+  });
+  const covers = (p: {cx: number; cy: number}) =>
+    !!avoid && Math.abs(avoid.x - p.cx) < w / 2 + 70 && Math.abs(avoid.y - p.cy) < h / 2 + 90;
+  let spot = place(head.x < 960);
+  if (covers(spot)) {
+    const other = place(head.x >= 960);
+    if (!covers(other)) spot = other;
+  }
+  const cx = spot.cx;
+  const cy = spot.cy + bob;
 
   // Scalloped edge: circles around an ellipse.
   const rx = w / 2;
